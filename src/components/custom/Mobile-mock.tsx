@@ -8,6 +8,7 @@ export function MobileMock() {
   const { showExplanationModal, isMobileChatOpened, isMobileFullHeight } =
     useAppContext();
   const [deviceHeight, setDeviceHeight] = useState(0);
+  // get browser
   useEffect(() => {
     const handleResize = () => {
       setDeviceHeight(window.innerHeight);
@@ -44,7 +45,7 @@ export function MobileMock() {
           loading="lazy"
           src="/assets/matey/langingMatey.svg"
           alt="back"
-          className={`w-96 h-96 -mb-[330px] -mt-7`}
+          className={`w-96 h-96 -mb-[203px] -mt-7`}
         />
       </div>
 
@@ -59,9 +60,9 @@ export function MobileMock() {
       ) : (
         <div
           className={`lg:w-[480px] ${
-            isMobileFullHeight ? `h-[580px]` : ``
+            isMobileFullHeight ? `` : ``
           } w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
-            isMobileChatOpened ? "mt-20" : "mt-0"
+            isMobileChatOpened ? "" : "mt-0"
           } bg-gradient-to-t from-slate-300 to-softYellow`}
         >
           <HeroChat />
