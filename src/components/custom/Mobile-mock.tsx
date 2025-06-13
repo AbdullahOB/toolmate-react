@@ -2,13 +2,27 @@ import HeroChat from "./HeroChat";
 import { useAppContext } from "@/context/AppContext";
 import Lottie from "lottie-react";
 import MateyGfx from "../../../public/MatteyNobg.json";
+import { useEffect, useState } from "react";
 export function MobileMock() {
-  const { showExplanationModal, isMobileChatOpened } = useAppContext();
+  // get the height of the device
+  const { showExplanationModal, isMobileChatOpened, isMobileFullHeight } =
+    useAppContext();
+  const [deviceHeight, setDeviceHeight] = useState(0);
+  useEffect(() => {
+    const handleResize = () => {
+      setDeviceHeight(window.innerHeight);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   // is chatting, when the user is chatting the container will be full screen
   return (
     <div
       className={`w-full ${
-        isMobileChatOpened ? "mt-12" : "mt-0"
+        isMobileChatOpened ? "mt-0" : "mt-0"
       } -mb-2 h-full flex lg:flex-row flex-col justify-center p-0 lg:justify-start items-center  relative`}
     >
       <Lottie
@@ -37,13 +51,26 @@ export function MobileMock() {
           className="w-96 h-96 -mb-[203px] -mt-7"
         />
       </div>
-      <div
-        className={`lg:w-[480px] h-[580px] w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
-          isMobileChatOpened ? "mt-16" : "mt-0"
-        } bg-gradient-to-t from-slate-300 to-softYellow`}
-      >
-        <HeroChat />
-      </div>
+
+      {deviceHeight < 660 ? (
+        <div
+          className={`lg:w-[480px] h-[470px] w-[98%] mx-auto lg:mx-0  lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
+            isMobileChatOpened ? "mt-32" : "mt-0"
+          } bg-gradient-to-t from-slate-300 to-softYellow`}
+        >
+          <HeroChat />
+        </div>
+      ) : (
+        <div
+          className={`lg:w-[480px] ${
+            isMobileFullHeight ? `h-[580px]` : ``
+          } w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
+            isMobileChatOpened ? "mt-20" : "mt-0"
+          } bg-gradient-to-t from-slate-300 to-softYellow`}
+        >
+          <HeroChat />
+        </div>
+      )}
     </div>
   );
 }
