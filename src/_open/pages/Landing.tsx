@@ -17,7 +17,6 @@ import { useState } from 'react';
 import TestimonialCarousel from '@/components/custom/TestimonialCarousel';
 import HowItWorks from '@/components/custom/HowItWorks';
 import { useAppContext } from '@/context/AppContext';
-import HeroChat from '@/components/custom/HeroChat';
 
 export default function Landing() {
   const [showBackToTop, setShowBackToTop] = useState(false);

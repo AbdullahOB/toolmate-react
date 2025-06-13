@@ -2,6 +2,7 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -10,7 +11,25 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',  // Ensure this is the correct output directory
+    outDir: 'dist',
+    sourcemap: true,
+    minify: 'terser',
+    rollupOptions: {
+      onLog(level, log, handler) {
+        if (log.cause && log.cause.message === `Can't resolve original location of error.`) {
+          return
+        }
+        handler(level, log)
+      }
+    }
   },
-  base: '/',  // Make sure this is correct based on your deployment URL
+  optimizeDeps: {
+    esbuildOptions: {
+      sourcemap: true
+    }
+  },
+  css: {
+    devSourcemap: true,
+  },
+  base: '/',
 });

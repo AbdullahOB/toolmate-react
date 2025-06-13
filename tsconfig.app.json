@@ -18,6 +18,11 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    
+    /* Sourcemap support */
+    "sourceMap": true,
+    "inlineSources": true,
+    "inlineSourceMap": false,
 
     /* Linting */
     "strict": true,

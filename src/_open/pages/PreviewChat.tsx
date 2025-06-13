@@ -134,7 +134,7 @@ export default function PreviewChat() {
   // Local state for UI-specific features (sidebar, mobile, etc.)
   const [chatSessions, setChatSessions] = React.useState<ChatSession[]>([]);
   const [currentChatId, setCurrentChatId] = React.useState<string | null>(null);
-  const [currentTier, setCurrentTier] = React.useState('buildersPick');
+  const [, setCurrentTier] = React.useState('buildersPick');
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
   const [isMobile, setIsMobile] = React.useState(false);
   const { user } = useUser();
