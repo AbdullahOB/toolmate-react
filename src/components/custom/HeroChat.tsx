@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo, useCallback, useRef } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 import {
@@ -127,6 +127,13 @@ export default function HeroChat() {
     [isMobile, shouldReduceMotion]
   );
 
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      setIsMobileFullHeight(true);
+      setIsMobileChatOpened(true);
+    }
+  }, [setIsMobileFullHeight, setIsMobileChatOpened]);
+ 
 
   const resetMobileState = useCallback(() => {
     if (window.innerWidth <= 768) {
@@ -140,9 +147,12 @@ export default function HeroChat() {
 
 
   const focusAndAlignInput = useCallback(() => {
+    
+      
     const el = inputRef.current
     if (!el) return
-    setIsMobileChatOpened(true)
+    if(window.innerWidth <= 768){
+      setIsMobileChatOpened(true)
     didOpenScroll.current = false
     
     // Focus the input first without scrolling
@@ -154,7 +164,7 @@ export default function HeroChat() {
       if (navigator.userAgent.indexOf('Chrome') > -1) {
         // Position the input near the middle of the screen
         const inputRect = el.getBoundingClientRect()
-        const targetScroll = window.scrollY + inputRect.top - (window.innerHeight / 3)
+        const targetScroll = window.scrollY + inputRect.top - (window.innerHeight / 2)
         
         window.scrollTo({
           top: targetScroll,
@@ -163,49 +173,78 @@ export default function HeroChat() {
       } else {
         // For other browsers like Safari, use the default scrollIntoView
         el.scrollIntoView({ 
-          block: 'center',
+          
+          block: 'start',
           behavior: 'smooth' // Use auto for a more immediate response
         })
       }
-      
       didOpenScroll.current = true
     }, 150) // Shorter delay for more immediate response
+    }
   }, [setIsMobileChatOpened])
   
 
   const unFocusAndRestore = useCallback(() => {
-    // 1) Scroll the window to the very top
-    window.scrollTo({ top: 100, behavior: 'smooth' });
-    // 2) Also scroll your chat messages container to its top
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 100, behavior: 'smooth' });
+    if(window.innerWidth <= 768){
+    inputRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
     }
-  }, [scrollContainerRef]);
+  }, []);
 
-  // Replace the viewport resize useEffect with this improved version:
-useEffect(() => {
+  // Always ensure the tagline is visible regardless of keyboard state or device
+  useLayoutEffect(() => {
+    const ensureTaglineVisibility = () => {
+      const header = document.querySelector('.matey-header') as HTMLElement;
+      if (header) {
+        header.style.display = 'flex';
+        
+        const tagline = header.querySelector('.tagline') as HTMLElement;
+        if (tagline) {
+          tagline.style.display = 'block';
+        }
+      }
+    };
+    
+    // Run immediately and set up an interval to continuously check
+    ensureTaglineVisibility();
+    const intervalId = setInterval(ensureTaglineVisibility, 500);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
   const visualViewport = window.visualViewport
   if (!visualViewport) return
-  
-  setIsMobileFullHeight(true)
+
+  if(window.innerWidth <= 768){
+    setIsMobileFullHeight(true)
+    focusAndAlignInput()
+  }
   const onViewportResize = () => {
-    if (document.activeElement === inputRef.current && !didOpenScroll.current) {
-      window.clearTimeout(resizeDebounce.current)
-      // scroll down
-      scrollContainerRef.current?.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: 'smooth' });
-      resizeDebounce.current = window.setTimeout(() => {
-        didOpenScroll.current = true
-      }, 280) 
+    // Ensure header is always visible by adjusting its position when keyboard appears/disappears
+    const header = document.querySelector('.matey-header') as HTMLElement;
+    if (header) {
+      header.classList.add('sticky', 'top-0', 'z-40');
+      
+      // Force the header to be shown
+      header.style.display = 'flex';
+      
+      // Ensure the tagline is visible
+      const tagline = header.querySelector('.tagline') as HTMLElement;
+      if (tagline) {
+        tagline.style.display = 'block';
+      }
     }
   }
 
   visualViewport.addEventListener('resize', onViewportResize)
+  // Initial call to ensure header is visible
+  onViewportResize();
 
   return () => {
     visualViewport.removeEventListener('resize', onViewportResize)
     window.clearTimeout(resizeDebounce.current)
   }
-}, [setIsMobileFullHeight])
+}, [setIsMobileFullHeight, focusAndAlignInput])
 
 
   //  when user aggersviley scroll down close the chat
@@ -530,7 +569,7 @@ useEffect(() => {
   }, [setIsMobileChatOpened]);
 
   return (
-    <div className='relative w-full h-full hero-chat-container p-2 md:p-2'>
+    <div className='relative w-full h-full hero-chat-container p-2 md:p-1'>
       <motion.div 
         initial={mobileAnimationVariants.initial}
         animate={mobileAnimationVariants.animate}
@@ -538,7 +577,7 @@ useEffect(() => {
         className={`w-full h-full bg-gradient-to-br ${
           isMobileFullHeight ? 'rounded-2xl' :  'rounded-2xl'
         } md:rounded-[1.8rem] from-yellow/10 to-softYellow/20 backdrop-blur-sm shadow-xl border-2 border-yellow/50 overflow-hidden`}>
-        <div className='bg-gradient-to-r from-yellow to-softYellow p-2 md:p-4 flex items-center gap-4 '>
+        <div className='bg-gradient-to-r from-yellow to-softYellow p-2 md:p-4 flex items-center gap-4 sticky top-0 z-40 w-full matey-header'>
           <div className='flex items-center gap-4'>
           <motion.div
   className='sm:w-16 sm:h-16 w-12 h-12 rounded-full bg-white p-1 overflow-hidden relative shadow-lg'
@@ -577,7 +616,7 @@ useEffect(() => {
                 transition={{ duration: 0.1 }}>
                 Matey
               </motion.h2>
-              <p className={`text-black/70 text-start ${isMobileChatOpened ? 'text-[12px]' : 'text-md'}`}>Knows Tools Talks Straight</p>
+              <p className='text-black/70 text-start text-sm sm:text-md font-medium tagline !block'>Knows Tools Talks Straight</p>
             </div>
           </div>
 
@@ -1079,11 +1118,7 @@ useEffect(() => {
           </div>
         </div>
       </motion.div>
-      {!isMobile && (
-        <div className='hero-chat-container relative '>
-          <CursorEffect />
-        </div>
-      )}
+     
       {/* Explanation Modal */}
       <ExplanationModal
         showExplanationModal={showExplanationModal}

@@ -65,7 +65,7 @@ export default function Landing() {
                
 
                {!isMobileChatOpened && (
-                <div className='text-center mt-36 lg:justify-start justify-center lg:items-start items-center lg:text-left lg:w-2/3 max-w-2/5 place-content-center flex flex-col gap-12'>
+                <div className={`text-center ${isMobileChatOpened ? 'mt-36' : 'mt-0'} lg:justify-start justify-center lg:items-start items-center lg:text-left lg:w-2/3 max-w-2/5 place-content-center flex flex-col gap-12`}>
                  
                
                   <motion.div
