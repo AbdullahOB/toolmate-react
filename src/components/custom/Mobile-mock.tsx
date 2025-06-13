@@ -23,7 +23,7 @@ export function MobileMock() {
   return (
     <div
       className={`w-full ${
-        isMobileChatOpened ? "mt-0" : "mt-0"
+        isMobileChatOpened ? "mt-8" : "mt-0"
       } -mb-2 h-full flex lg:flex-row flex-col justify-center p-0 lg:justify-start items-center  relative`}
     >
       <Lottie
@@ -46,9 +46,9 @@ export function MobileMock() {
           src="/assets/matey/langingMatey.svg"
           alt="back"
           // if safari
-          className={`w-96 h-96 ${
-            deviceHeight < 660 ? "-mb-[330px]" : "-mb-[203px]"
-          } ${deviceHeight < 660 ? "-mt-7" : ""}`}
+          className={`w-[280px] h-[280px] mx-auto ${
+            deviceHeight < 660 ? "-mb-[330px]" : "-mb-[145px]"
+          } ${deviceHeight < 660 ? "-mt-2" : ""}`}
         />
       </div>
 
