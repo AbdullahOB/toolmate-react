@@ -9,7 +9,7 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from '@/compon
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { buttonVariants } from '@/components/ui/button';
 import { SignOutButton, useAuth } from '@clerk/clerk-react';
-import Logo from './logo';
+import Logo from './Logo';
 import { ActiveNavIndicator } from './active-nav-indicators';
 import { MateyNavIcon } from '../ui/matey-nav-icon';
 import { X, Menu, BadgeDollarSign } from 'lucide-react';

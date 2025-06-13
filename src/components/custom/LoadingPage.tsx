@@ -1,5 +1,3 @@
-import Logo from "./Logo";
-import MateyExpression from "./MateyExpression";
 
 export default function LoadingPage({
     title
