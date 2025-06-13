@@ -39,16 +39,12 @@ export function MobileMock() {
         loop={true}
       />
       <div className="hidden lg:flex"></div>
-      <div
-        className={`${
-          isMobileChatOpened ? "hidden" : "block"
-        } lg:hidden w-full h-full`}
-      >
+      <div className={` lg:hidden w-full h-full`}>
         <img
           loading="lazy"
           src="/assets/matey/langingMatey.svg"
           alt="back"
-          className="w-96 h-96 -mb-[203px] -mt-7"
+          className={`w-96 h-96 -mb-[330px] -mt-7`}
         />
       </div>
 

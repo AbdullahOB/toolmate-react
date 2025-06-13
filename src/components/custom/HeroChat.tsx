@@ -614,8 +614,8 @@ export default function HeroChat() {
           isMobileFullHeight ? "rounded-2xl" : "rounded-2xl"
         } md:rounded-[1.8rem] from-yellow/10 to-softYellow/20 backdrop-blur-sm shadow-xl border-2 border-yellow/50 overflow-hidden`}
       >
-        <div className="bg-gradient-to-r from-yellow to-softYellow p-2 md:p-4 flex items-center gap-4 sticky top-0 z-40 w-full matey-header">
-          <div className="flex items-center gap-4">
+        <div className="bg-gradient-to-r from-yellow to-softYellow p-2 md:p-4 flex items-center gap-4 sticky z-40 w-full matey-header">
+          <div className="flex items-center gap-4 ">
             <motion.div className="sm:w-16 sm:h-16 w-12 h-12 rounded-full bg-white p-1 overflow-hidden relative shadow-lg">
               <img
                 src="/assets/matey-emoji/smile.svg"
