@@ -4,7 +4,7 @@ import type React from 'react';
 import { motion } from 'framer-motion';
 import { Link, NavLink } from 'react-router-dom';
 import { Facebook, Twitter, Youtube, Instagram } from 'lucide-react';
-import Logo from './logo';
+import Logo from '@/components/custom/Logo';
 
 // Animation variants
 const containerVariants = {
