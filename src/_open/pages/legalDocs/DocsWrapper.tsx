@@ -1,4 +1,4 @@
-import Logo from '@/components/custom/logo';
+import Logo from '@/components/custom/Logo';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link, useLocation } from 'react-router-dom';
