@@ -165,24 +165,10 @@ export default function HeroChat() {
 
       // Simple, gentle scroll with a short delay
       setTimeout(() => {
-        // For Chrome, use a more direct approach with less animation
-        if (navigator.userAgent.indexOf("Chrome") > -1) {
-          // Position the input near the middle of the screen
-          const inputRect = el.getBoundingClientRect();
-          const targetScroll =
-            window.scrollY + inputRect.top - window.innerHeight / 2;
-
-          window.scrollTo({
-            top: targetScroll,
-            behavior: "auto", // Use auto instead of smooth to avoid bouncing
-          });
-        } else {
-          // For other browsers like Safari, use the default scrollIntoView
-          el.scrollIntoView({
-            block: "start",
-            behavior: "smooth", // Use auto for a more immediate response
-          });
-        }
+        el.scrollIntoView({
+          block: "start",
+          behavior: "smooth", // Use auto for a more immediate response
+        });
         didOpenScroll.current = true;
       }, 150); // Shorter delay for more immediate response
     }
