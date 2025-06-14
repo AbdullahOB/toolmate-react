@@ -1,25 +1,33 @@
-'use client';
+"use client";
 
-import type React from 'react';
-import { createContext, type ReactNode, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
-import type { IMateyExpression } from '@/types/types';
+import type React from "react";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
+import { useLocation } from "react-router-dom";
+import type { IMateyExpression } from "@/types/types";
 import {
   getProductsByKeywords,
   extractKeywords,
   detectHelpRequest,
   extractProductNames,
-} from '@/components/MockProducts';
-import { motion } from 'framer-motion';
-import { mockProducts } from '@/components/MockProducts';
-import { useSubscription } from './SubscriptionDetailsContext';
-import { useUser } from '@clerk/clerk-react';
-import axios from 'axios';
-import useMessages from '@/hooks/useMessages';
+} from "@/components/MockProducts";
+import { motion } from "framer-motion";
+import { mockProducts } from "@/components/MockProducts";
+import { useSubscription } from "./SubscriptionDetailsContext";
+import { useUser } from "@clerk/clerk-react";
+import axios from "axios";
+import useMessages from "@/hooks/useMessages";
 export type Message = {
   id: string;
   text: string;
-  sender: 'user' | 'matey';
+  sender: "user" | "matey";
   timestamp: Date;
   expression?: IMateyExpression;
   isToolSuggestion?: boolean;
@@ -36,27 +44,27 @@ export type Message = {
 
 const mateyResponses = {
   greeting: [
-    'Alright legend, What are we tackling today?',
-    'Got a project in mind or just winging it?',
+    "Alright legend, What are we tackling today?",
+    "Got a project in mind or just winging it?",
     "Tell me what's up. tools, plans, or dramas?",
     "Need a hand or just curious? I'm all ears.",
-    'What are we fixing, building, or figuring out?',
+    "What are we fixing, building, or figuring out?",
     "Hit me with it, mate. I've seen worse.",
     "You bring the idea. I'll bring the know-how.",
   ],
   thinking: [
-    'Hmm, let me think about that for a sec...',
-    'Scratching my head on this one... just a moment!',
-    'Let me dig through my toolbox of knowledge...',
-    'Thinking cap is on! Give me a jiffy...',
-    'Just working out the nuts and bolts of this question...',
+    "Hmm, let me think about that for a sec...",
+    "Scratching my head on this one... just a moment!",
+    "Let me dig through my toolbox of knowledge...",
+    "Thinking cap is on! Give me a jiffy...",
+    "Just working out the nuts and bolts of this question...",
   ],
   general: [
     "Crikey! That's a great question. Let me sort that out for ya.",
     "Fair dinkum! I've got just the answer for that.",
-    'Beauty! I know exactly what you need here.',
+    "Beauty! I know exactly what you need here.",
     "Strewth! You've come to the right place with that question.",
-    'Too right! I can definitely help with that one.',
+    "Too right! I can definitely help with that one.",
     "Spot on question! Here's what you need to know...",
     "Bonza! I've got some ripper advice for that.",
     "You've stumped me for a sec, but I reckon I've got the answer now!",
@@ -65,14 +73,14 @@ const mateyResponses = {
   ],
   tools: [
     "For that job, you'll want to get your hands on these beauties...",
-    'A true tradie would reach for these tools first...',
+    "A true tradie would reach for these tools first...",
     "Based on my experience, these are the tools you'll need in your corner...",
     "I wouldn't start that project without these in my toolkit...",
-    'Every DIYer worth their salt would use these for that job...',
+    "Every DIYer worth their salt would use these for that job...",
   ],
   advice: [
     "Between you and me, here's a little trick of the trade...",
-    'Most folks get this wrong, but what you really want to do is...',
+    "Most folks get this wrong, but what you really want to do is...",
     "My old man taught me this technique years ago, and it's never failed me...",
     "Here's something they don't tell you in the instruction manuals...",
     "I learned this the hard way so you don't have to...",
@@ -81,20 +89,20 @@ const mateyResponses = {
     "You've got this, mate! That project will be a piece of cake with your skills.",
     "With a steady hand like yours, this'll be done in no time!",
     "Trust me, you're asking all the right questions. You're gonna nail this project!",
-    'I can tell you know your stuff! This project is right up your alley.',
+    "I can tell you know your stuff! This project is right up your alley.",
     "That's the spirit! Tackle it head-on and you'll be wrapped up before you know it.",
   ],
   imageResponse: [
     "Crikey! That's a ripper of an image! Let me have a squiz at what we're dealing with here...",
-    'Beauty! Thanks for the visual, mate. Let me analyze what tools you might need for this...',
+    "Beauty! Thanks for the visual, mate. Let me analyze what tools you might need for this...",
     "G'day! That's a fair dinkum challenge you've got there. Let me think about the right tools...",
     "Strewth! That's an interesting project you've got. Let me sort out what you'll need...",
-    'Well would you look at that! Give me a sec to figure out the best approach here...',
+    "Well would you look at that! Give me a sec to figure out the best approach here...",
     "Now that's what I call a proper DIY challenge! Let me see what we're working with...",
     "That's a beauty of a project! Let me take a gander and suggest some tools...",
     "Oh, I see what you're up against now! Let me think about the best way to tackle this...",
-    'Thanks for the pic, mate! Makes it much easier for me to help you out properly.',
-    'Got your image loud and clear! Let me put my thinking cap on for this one...',
+    "Thanks for the pic, mate! Makes it much easier for me to help you out properly.",
+    "Got your image loud and clear! Let me put my thinking cap on for this one...",
   ],
   sliderCancel: [
     "No worries, mate! We can sort out the budget later. Just give me a shout when you're ready.",
@@ -103,16 +111,16 @@ const mateyResponses = {
     "No drama! We can figure out the budget when you're ready to pull the trigger.",
     "She'll be right! We can talk budget another time. What else can I help with?",
     "Roger that! The budget slider's not going anywhere. It'll be here when you need it.",
-    'All good, cobber! We can sort the budget out later. What else is on your mind?',
+    "All good, cobber! We can sort the budget out later. What else is on your mind?",
     "No dramas! The slider will be waiting for ya when you're ready to give it a burl.",
     "Righto! We'll put a pin in that for now. The slider's here whenever you need it.",
-    'Sweet as! We can come back to the budget chat later. What else can I help with?',
+    "Sweet as! We can come back to the budget chat later. What else can I help with?",
   ],
 };
 
-const STORAGE_KEY = 'matey-chat-messages';
-const UPLOAD_COUNT_KEY = 'matey-upload-count';
-const UPLOAD_DATE_KEY = 'matey-upload-date';
+const STORAGE_KEY = "matey-chat-messages";
+const UPLOAD_COUNT_KEY = "matey-upload-count";
+const UPLOAD_DATE_KEY = "matey-upload-date";
 const MAX_FREE_UPLOADS = 2;
 const MAX_IMAGE_WIDTH = 800;
 const MAX_IMAGE_HEIGHT = 600;
@@ -131,20 +139,20 @@ const compressImage = (dataUrl: string): Promise<string> => {
         width = (width * MAX_IMAGE_HEIGHT) / height;
         height = MAX_IMAGE_HEIGHT;
       }
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) {
-        reject(new Error('Could not get canvas context'));
+        reject(new Error("Could not get canvas context"));
         return;
       }
       ctx.drawImage(img, 0, 0, width, height);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', IMAGE_QUALITY);
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", IMAGE_QUALITY);
       resolve(compressedDataUrl);
     };
     img.onerror = () => {
-      reject(new Error('Failed to load image'));
+      reject(new Error("Failed to load image"));
     };
     img.src = dataUrl;
   });
@@ -211,8 +219,10 @@ export interface AppContextType {
   setExtractedKeywords: React.Dispatch<React.SetStateAction<string[]>>;
   extractedProductNames: string[];
   setExtractedProductNames: React.Dispatch<React.SetStateAction<string[]>>;
-  revealPattern: 'inline' | 'micro-quiz' | 'side-drawer' | 'creative';
-  setRevealPattern: React.Dispatch<React.SetStateAction<'inline' | 'micro-quiz' | 'side-drawer' | 'creative'>>;
+  revealPattern: "inline" | "micro-quiz" | "side-drawer" | "creative";
+  setRevealPattern: React.Dispatch<
+    React.SetStateAction<"inline" | "micro-quiz" | "side-drawer" | "creative">
+  >;
   showMicroQuiz: boolean;
   setShowMicroQuiz: React.Dispatch<React.SetStateAction<boolean>>;
   showBudgetTab: boolean;
@@ -251,7 +261,7 @@ export interface AppContextType {
   setShowReportModal: React.Dispatch<React.SetStateAction<boolean>>;
   showDropdown: string | null;
   setShowDropdown: React.Dispatch<React.SetStateAction<string | null>>;
-  feedbackAnimations: { [key: string]: 'helpful' | 'unhelpful' | null };
+  feedbackAnimations: { [key: string]: "helpful" | "unhelpful" | null };
   onClose: () => void;
   handleDropdownAction: (action: string, messageId?: string) => void;
   // Functions
@@ -263,7 +273,10 @@ export interface AppContextType {
   clearImagePreview: () => void;
   handlePromptClick: (prompt: string) => void;
   clearChatHistory: () => void;
-  getContextualResponse: (input: string) => { text: string; expression: IMateyExpression };
+  getContextualResponse: (input: string) => {
+    text: string;
+    expression: IMateyExpression;
+  };
   renderMateyExpression: (expression?: IMateyExpression) => JSX.Element;
   handleFileUpload: () => void;
   handleBudgetChange: (budget: number, tier: string) => void;
@@ -287,7 +300,9 @@ interface AppContextProviderProps {
   children: ReactNode;
 }
 
-const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => {
+const AppContextProvider: React.FC<AppContextProviderProps> = ({
+  children,
+}) => {
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
   const [clicked, setClicked] = useState<boolean>(false);
   const [selectedBudget, setSelectedBudget] = useState<number>(0);
@@ -299,24 +314,26 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [feedbackAnimations, setFeedbackAnimations] = useState<{ [key: string]: 'helpful' | 'unhelpful' | null }>({});
-  const [currentExplanation, setCurrentExplanation] = useState('');
-  const [currentToolName, setCurrentToolName] = useState('');
+  const [feedbackAnimations, setFeedbackAnimations] = useState<{
+    [key: string]: "helpful" | "unhelpful" | null;
+  }>({});
+  const [currentExplanation, setCurrentExplanation] = useState("");
+  const [currentToolName, setCurrentToolName] = useState("");
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [currentSuggestion, setCurrentSuggestion] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [currentSuggestion, setCurrentSuggestion] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [showEmojiBubble, setShowEmojiBubble] = useState(false);
-  const [currentEmoji, setCurrentEmoji] = useState<IMateyExpression>('smile');
+  const [currentEmoji, setCurrentEmoji] = useState<IMateyExpression>("smile");
   const [isCompletingText, setIsCompletingText] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCompressingImage, setIsCompressingImage] = useState(false);
   const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
-  const [uploadDate, setUploadDate] = useState<string>('');
+  const [uploadDate, setUploadDate] = useState<string>("");
   const [showUploadButton, setShowUploadButton] = useState(false);
   const [mateyAskedForPhoto, setMateyAskedForPhoto] = useState(false);
   const [userAskedAboutUpload, setUserAskedAboutUpload] = useState(false);
@@ -325,8 +342,12 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const [currentBudget, setCurrentBudget] = useState(50);
   const [budgetCompleted, setBudgetCompleted] = useState(false);
   const [extractedKeywords, setExtractedKeywords] = useState<string[]>([]);
-  const [extractedProductNames, setExtractedProductNames] = useState<string[]>([]);
-  const [revealPattern, setRevealPattern] = useState<'inline' | 'micro-quiz' | 'side-drawer' | 'creative'>('inline');
+  const [extractedProductNames, setExtractedProductNames] = useState<string[]>(
+    []
+  );
+  const [revealPattern, setRevealPattern] = useState<
+    "inline" | "micro-quiz" | "side-drawer" | "creative"
+  >("inline");
   const [showMicroQuiz, setShowMicroQuiz] = useState(false);
   const [showBudgetTab, setShowBudgetTab] = useState(false);
   const [showCreativeReveal, setShowCreativeReveal] = useState(false);
@@ -355,7 +376,9 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const parseStoredMessages = (storedMessages: string | null): Message[] => {
     if (!storedMessages) return [];
     try {
-      const parsedMessages = isFetching ? JSON.parse(storedMessages) : backendMessages;
+      const parsedMessages = isFetching
+        ? JSON.parse(storedMessages)
+        : backendMessages;
       return parsedMessages.map((message: any) => ({
         ...message,
         timestamp: new Date(message.timestamp),
@@ -363,7 +386,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
         isImage: !!message.imageUrl,
       }));
     } catch (error) {
-      console.error('Error parsing stored messages:', error);
+      console.error("Error parsing stored messages:", error);
       return [];
     }
   };
@@ -372,20 +395,20 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
       return true;
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error("Error saving to localStorage:", error);
       return false;
     }
   };
   // Initialize upload count and date
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const storedCount = localStorage.getItem(UPLOAD_COUNT_KEY);
       const storedDate = localStorage.getItem(UPLOAD_DATE_KEY);
       const today = new Date().toDateString();
       if (storedDate && storedDate !== today) {
         setUploadCount(0);
         setUploadDate(today);
-        localStorage.setItem(UPLOAD_COUNT_KEY, '0');
+        localStorage.setItem(UPLOAD_COUNT_KEY, "0");
         localStorage.setItem(UPLOAD_DATE_KEY, today);
       } else {
         setUploadCount(storedCount ? Number.parseInt(storedCount, 10) : 0);
@@ -396,7 +419,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   // Update upload count in localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(UPLOAD_COUNT_KEY, uploadCount.toString());
       localStorage.setItem(UPLOAD_DATE_KEY, uploadDate);
       if (uploadCount >= MAX_FREE_UPLOADS) {
@@ -407,7 +430,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   // Handle selected prompt
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     if (selectedPrompt) {
       setInputValue(selectedPrompt);
     }
@@ -415,7 +438,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   // Initialize chat
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         const storedMessages = localStorage.getItem(STORAGE_KEY);
         const parsedMessages = parseStoredMessages(storedMessages);
@@ -432,13 +455,15 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
             if (!userMessageSentDuringLoading.current) {
               setTimeout(() => {
                 const randomGreeting =
-                  mateyResponses.greeting[Math.floor(Math.random() * mateyResponses.greeting.length)];
+                  mateyResponses.greeting[
+                    Math.floor(Math.random() * mateyResponses.greeting.length)
+                  ];
                 const greetingMessage: Message = {
                   id: Date.now().toString(),
                   text: randomGreeting,
-                  sender: 'matey',
+                  sender: "matey",
                   timestamp: new Date(),
-                  expression: 'hello',
+                  expression: "hello",
                 };
                 setMessages([greetingMessage]);
                 setIsInitialized(true);
@@ -449,27 +474,40 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           }, 3000);
         }
       } catch (error) {
-        console.error('Error accessing localStorage:', error);
+        console.error("Error accessing localStorage:", error);
         setIsInitialized(false);
       }
     }
   }, []);
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && messages.length > 0) {
+    if (typeof window !== "undefined" && messages.length > 0) {
       saveMessagesToLocalStorage(messages);
-      const toolSuggestions = messages.filter((msg) => msg.isToolSuggestion && msg.products);
+      const toolSuggestions = messages.filter(
+        (msg) => msg.isToolSuggestion && msg.products
+      );
       if (toolSuggestions.length > 0) {
         try {
-          localStorage.setItem('tool-suggestion', JSON.stringify(toolSuggestions));
+          localStorage.setItem(
+            "tool-suggestion",
+            JSON.stringify(toolSuggestions)
+          );
           if (user) {
-            axios.post(`${import.meta.env.VITE_SERVER_URL}/store-suggested-tools`, {
-              userName: user.fullName,
-              userEmail: user.emailAddresses?.map((email) => email.emailAddress) || [],
-              suggestedTools: toolSuggestions,
-            });
+            axios.post(
+              `${import.meta.env.VITE_SERVER_URL}/store-suggested-tools`,
+              {
+                userName: user.fullName,
+                userEmail:
+                  user.emailAddresses?.map((email) => email.emailAddress) || [],
+                suggestedTools: toolSuggestions,
+              }
+            );
           }
         } catch (error) {
-          console.error('Error saving tool suggestions to localStorage:', error);
+          console.error(
+            "Error saving tool suggestions to localStorage:",
+            error
+          );
         }
       }
     }
@@ -481,7 +519,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       if (chatContainerRef.current) {
         chatContainerRef.current.scrollTo({
           top: chatContainerRef.current.scrollHeight,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
       }
     }, 100);
@@ -502,8 +540,16 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   // Functions
   const showRandomEmojiBubble = () => {
-    const expressions: IMateyExpression[] = ['laugh', 'hello', 'smile', 'offer', '1thumb', '2thumb'];
-    const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+    const expressions: IMateyExpression[] = [
+      "laugh",
+      "hello",
+      "smile",
+      "offer",
+      "1thumb",
+      "2thumb",
+    ];
+    const randomExpression =
+      expressions[Math.floor(Math.random() * expressions.length)];
     setCurrentEmoji(randomExpression);
     setShowEmojiBubble(true);
     setTimeout(() => {
@@ -514,155 +560,199 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const checkIfUserAsksAboutUpload = (text: string) => {
     const lowerText = text.toLowerCase();
     return (
-      lowerText.includes('upload photo') ||
-      lowerText.includes('upload image') ||
-      lowerText.includes('upload picture') ||
-      lowerText.includes('send photo') ||
-      lowerText.includes('send image') ||
-      lowerText.includes('send picture') ||
-      lowerText.includes('share photo') ||
-      lowerText.includes('share image') ||
-      lowerText.includes('can i upload') ||
-      lowerText.includes('can i send') ||
-      lowerText.includes('can i share') ||
-      lowerText.includes('how to upload')
+      lowerText.includes("upload photo") ||
+      lowerText.includes("upload image") ||
+      lowerText.includes("upload picture") ||
+      lowerText.includes("send photo") ||
+      lowerText.includes("send image") ||
+      lowerText.includes("send picture") ||
+      lowerText.includes("share photo") ||
+      lowerText.includes("share image") ||
+      lowerText.includes("can i upload") ||
+      lowerText.includes("can i send") ||
+      lowerText.includes("can i share") ||
+      lowerText.includes("how to upload")
     );
   };
   const getContextualResponse = (input: string) => {
     const lowerInput = input.toLowerCase();
     if (
-      lowerInput.includes('?') ||
-      lowerInput.startsWith('how') ||
-      lowerInput.startsWith('what') ||
-      lowerInput.startsWith('which') ||
-      lowerInput.startsWith('can') ||
-      lowerInput.startsWith('where')
+      lowerInput.includes("?") ||
+      lowerInput.startsWith("how") ||
+      lowerInput.startsWith("what") ||
+      lowerInput.startsWith("which") ||
+      lowerInput.startsWith("can") ||
+      lowerInput.startsWith("where")
     ) {
       return {
-        text: 'Great question! ' + mateyResponses.general[Math.floor(Math.random() * mateyResponses.general.length)],
-        expression: 'thinking' as IMateyExpression,
+        text:
+          "Great question! " +
+          mateyResponses.general[
+            Math.floor(Math.random() * mateyResponses.general.length)
+          ],
+        expression: "thinking" as IMateyExpression,
       };
     }
     if (
-      lowerInput.includes('tool') ||
-      lowerInput.includes('drill') ||
-      lowerInput.includes('hammer') ||
-      lowerInput.includes('saw') ||
-      lowerInput.includes('screwdriver')
+      lowerInput.includes("tool") ||
+      lowerInput.includes("drill") ||
+      lowerInput.includes("hammer") ||
+      lowerInput.includes("saw") ||
+      lowerInput.includes("screwdriver")
     ) {
       return {
-        text: mateyResponses.tools[Math.floor(Math.random() * mateyResponses.tools.length)],
-        expression: 'tool' as IMateyExpression,
+        text: mateyResponses.tools[
+          Math.floor(Math.random() * mateyResponses.tools.length)
+        ],
+        expression: "tool" as IMateyExpression,
       };
     }
 
     if (
-      lowerInput.includes('project') ||
-      lowerInput.includes('build') ||
-      lowerInput.includes('make') ||
-      lowerInput.includes('create') ||
-      lowerInput.includes('construct')
+      lowerInput.includes("project") ||
+      lowerInput.includes("build") ||
+      lowerInput.includes("make") ||
+      lowerInput.includes("create") ||
+      lowerInput.includes("construct")
     ) {
       return {
         text:
-          mateyResponses.encouragement[Math.floor(Math.random() * mateyResponses.encouragement.length)] +
-          ' ' +
-          mateyResponses.advice[Math.floor(Math.random() * mateyResponses.advice.length)],
-        expression: 'offer' as IMateyExpression,
+          mateyResponses.encouragement[
+            Math.floor(Math.random() * mateyResponses.encouragement.length)
+          ] +
+          " " +
+          mateyResponses.advice[
+            Math.floor(Math.random() * mateyResponses.advice.length)
+          ],
+        expression: "offer" as IMateyExpression,
       };
     }
     return {
-      text: mateyResponses.general[Math.floor(Math.random() * mateyResponses.general.length)],
-      expression: 'smile' as IMateyExpression,
+      text: mateyResponses.general[
+        Math.floor(Math.random() * mateyResponses.general.length)
+      ],
+      expression: "smile" as IMateyExpression,
     };
   };
 
   const renderMateyExpression = (expression?: IMateyExpression) => {
     switch (expression) {
-      case 'laugh':
+      case "laugh":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/largeSmile.svg'
-            alt='excited'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/largeSmile.svg"
+            alt="excited"
             width={40}
             height={40}
           />
         );
-      case 'hello':
+      case "hello":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/hello.svg'
-            alt='hello'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/hello.svg"
+            alt="hello"
             width={40}
             height={40}
           />
         );
-      case 'smile':
+      case "smile":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/smile.svg'
-            alt='happy'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/smile.svg"
+            alt="happy"
             width={40}
             height={40}
           />
         );
-      case 'offer':
+      case "offer":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/take.svg'
-            alt='offer'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/take.svg"
+            alt="offer"
             width={40}
             height={40}
           />
         );
-      case '1thumb':
+      case "1thumb":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/thumb1.svg'
-            alt='thumb1'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/thumb1.svg"
+            alt="thumb1"
             width={40}
             height={40}
           />
         );
-      case '2thumb':
+      case "2thumb":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/thumbs2.svg'
-            alt='thumb2'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/thumbs2.svg"
+            alt="thumb2"
             width={40}
             height={40}
           />
         );
-      case 'tool':
+      case "tool":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/tool.svg'
-            alt='tool'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/tool.svg"
+            alt="tool"
             width={40}
             height={40}
           />
         );
-      case 'thinking':
+      case "thinking":
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/thinking.svg'
-            alt='thinking'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/thinking.svg"
+            alt="thinking"
             width={40}
             height={40}
           />
@@ -671,16 +761,22 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
         return (
           <motion.img
             animate={{ rotate: [0, -5, 5, -5, 0] }}
-            transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, ease: 'easeInOut' }}
-            src='/assets/matey-emoji/smile.svg'
-            alt='default'
+            transition={{
+              repeat: Number.POSITIVE_INFINITY,
+              duration: 2,
+              ease: "easeInOut",
+            }}
+            src="/assets/matey-emoji/smile.svg"
+            alt="default"
             width={40}
             height={40}
           />
         );
     }
   };
-  const mateyOutput = messages.filter((msg) => msg.sender === 'matey').slice(-1)[0];
+  const mateyOutput = messages
+    .filter((msg) => msg.sender === "matey")
+    .slice(-1)[0];
 
   const postMessagesToServer = async (allMessages: Message[]) => {
     if (!user) return;
@@ -688,17 +784,19 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
     try {
       await axios.post(`${import.meta.env.VITE_SERVER_URL}/store-messages`, {
         userName: user.fullName,
-        userEmail: user.emailAddresses?.map((email) => email.emailAddress) || [],
+        userEmail:
+          user.emailAddresses?.map((email) => email.emailAddress) || [],
         messages: allMessages,
       });
       refetch();
     } catch (err) {
-      console.error('Failed to send messages to server:', err);
+      console.error("Failed to send messages to server:", err);
     }
   };
 
   const handleSendMessage = async () => {
-    if ((inputValue.trim() === '' && !imagePreview) || isCompressingImage) return;
+    if ((inputValue.trim() === "" && !imagePreview) || isCompressingImage)
+      return;
 
     if (isInitialLoading) {
       userMessageSentDuringLoading.current = true;
@@ -708,7 +806,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputValue,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date(),
       isImage: !!imagePreview,
       imageUrl: imagePreview || undefined,
@@ -724,8 +822,8 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     saveMessagesToLocalStorage(updatedMessages);
-    setInputValue('');
-    setCurrentSuggestion('');
+    setInputValue("");
+    setCurrentSuggestion("");
     setImagePreview(null);
     setIsTyping(true);
 
@@ -743,23 +841,30 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       const isImageMessage = !!userMessage.isImage;
 
       if (isImageMessage) {
-        const randomIndex = Math.floor(Math.random() * mateyResponses.imageResponse.length);
+        const randomIndex = Math.floor(
+          Math.random() * mateyResponses.imageResponse.length
+        );
         randomResponse = {
           text: mateyResponses.imageResponse[randomIndex],
-          expression: ['smile', 'tool', 'thinking', 'offer'][Math.floor(Math.random() * 4)] as IMateyExpression,
+          expression: ["smile", "tool", "thinking", "offer"][
+            Math.floor(Math.random() * 4)
+          ] as IMateyExpression,
         };
-      } else if (userAskedAboutUpload || checkIfUserAsksAboutUpload(userMessage.text)) {
+      } else if (
+        userAskedAboutUpload ||
+        checkIfUserAsksAboutUpload(userMessage.text)
+      ) {
         if (uploadCount >= MAX_FREE_UPLOADS) {
           randomResponse = {
             text: `That's the last one I can swing ya today, mate. If you need more, reckon the Best Mate plan might be worth a squiz.`,
-            expression: 'thinking',
+            expression: "thinking",
           };
         } else {
           randomResponse = {
             text: subscriptionData
-              ? 'Go ahead and upload your photo - I can give you more targeted advice with a visual.'
+              ? "Go ahead and upload your photo - I can give you more targeted advice with a visual."
               : "Normally that's part of the paid plan, but I'll let you sneak two through Caroma. Go ahead and upload it, just keep it between us!",
-            expression: 'offer',
+            expression: "offer",
           };
           setMateyAskedForPhoto(true);
           setShowUploadButton(true);
@@ -782,7 +887,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       const mateyResponse: Message = {
         id: Date.now().toString(),
         text: randomResponse.text,
-        sender: 'matey',
+        sender: "matey",
         timestamp: new Date(),
         expression: randomResponse.expression,
       };
@@ -801,17 +906,23 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           setTimeout(() => {
             setIsTyping(false);
             setTimeout(() => {
-              let questionText = '';
+              let questionText = "";
 
               if (showBudgetTab) {
                 if (productNames.length > 0) {
                   questionText = `I see you're looking for ${productNames.join(
-                    ', '
+                    ", "
                   )}. Let me know your budget and I'll suggest some options.`;
-                } else if (userMessage.text.toLowerCase().includes('budget') && !isOpen) {
-                  questionText = "Still keen to sort the budget, mate? It'll help me give better recos.";
+                } else if (
+                  userMessage.text.toLowerCase().includes("budget") &&
+                  !isOpen
+                ) {
+                  questionText =
+                    "Still keen to sort the budget, mate? It'll help me give better recos.";
                 } else if (keywords.length > 0) {
-                  questionText = `I see you're working with ${keywords.join(', ')}. What's your budget for tools?`;
+                  questionText = `I see you're working with ${keywords.join(
+                    ", "
+                  )}. What's your budget for tools?`;
                 } else {
                   questionText = `I'd be happy to help! What's your budget for the tools you need?`;
                 }
@@ -820,24 +931,30 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
                   "Pick what fits — I'll keep things realistic, not ridiculous.",
                   "Here's three ways to tackle it, from bare-bones to bells and whistles.",
                 ];
-                questionText = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+                questionText =
+                  fallbackMessages[
+                    Math.floor(Math.random() * fallbackMessages.length)
+                  ];
               }
 
               const budgetQuestion: Message = {
                 id: Date.now().toString(),
                 text: questionText,
-                sender: 'matey',
+                sender: "matey",
                 timestamp: new Date(),
-                expression: 'offer',
+                expression: "offer",
                 keywords: keywords,
               };
 
-              const updatedWithBudgetQuestion = [...messageFlow, budgetQuestion];
+              const updatedWithBudgetQuestion = [
+                ...messageFlow,
+                budgetQuestion,
+              ];
               setMessages(updatedWithBudgetQuestion);
               saveMessagesToLocalStorage(updatedWithBudgetQuestion);
               messageFlow = updatedWithBudgetQuestion;
 
-              setRevealPattern('side-drawer');
+              setRevealPattern("side-drawer");
               setShowBudgetTab(true);
               setBudgetCompleted(false);
               // ✅ Post messages after final Matey message
@@ -853,7 +970,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (currentSuggestion && !isCompletingText) {
         e.preventDefault();
@@ -863,7 +980,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       handleSendMessage();
       return;
     }
-    if (e.key === 'Tab' && currentSuggestion) {
+    if (e.key === "Tab" && currentSuggestion) {
       e.preventDefault();
       completeText();
     }
@@ -882,7 +999,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
         setTimeout(animateNextChar, 15);
       } else {
         setIsCompletingText(false);
-        setCurrentSuggestion('');
+        setCurrentSuggestion("");
       }
     };
     animateNextChar();
@@ -894,29 +1011,31 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       return;
     }
     const allSuggestions = [
-      'How do I install a ceiling fan?',
-      'How to fix a leaky faucet?',
-      'Tools needed for basic plumbing',
-      'How to hang a heavy mirror?',
-      'How to patch a hole in the wall?',
-      'Best way to paint a room?',
+      "How do I install a ceiling fan?",
+      "How to fix a leaky faucet?",
+      "Tools needed for basic plumbing",
+      "How to hang a heavy mirror?",
+      "How to patch a hole in the wall?",
+      "Best way to paint a room?",
       "How do I unclog a drain without callin' a plumber?",
-      'Can I assemble flat-pack furniture solo?',
+      "Can I assemble flat-pack furniture solo?",
       "What's the easiest way to paint a fence?",
-      'How do I replace a broken tile?',
-      'Tips for using a power drill for the first time',
-      'How to clean gutters safely?',
-      'What tools do I need for tiling?',
-      'Tips for installing laminate flooring',
-      'How to build a simple bookshelf?',
+      "How do I replace a broken tile?",
+      "Tips for using a power drill for the first time",
+      "How to clean gutters safely?",
+      "What tools do I need for tiling?",
+      "Tips for installing laminate flooring",
+      "How to build a simple bookshelf?",
       "What's the best way to paint kitchen cabinets?",
-      'How to install floating shelves properly?',
-      'Build a raised garden bed on a budget',
-      'How to install curtain rods without wrecking the wall?',
-      'Best way to fix squeaky doors?',
+      "How to install floating shelves properly?",
+      "Build a raised garden bed on a budget",
+      "How to install curtain rods without wrecking the wall?",
+      "Best way to fix squeaky doors?",
     ];
     const filtered = allSuggestions
-      .filter((suggestion) => suggestion.toLowerCase().includes(input.toLowerCase()))
+      .filter((suggestion) =>
+        suggestion.toLowerCase().includes(input.toLowerCase())
+      )
       .slice(0, 3);
     setSuggestedPrompts(filtered);
     setShowSuggestions(filtered.length > 0);
@@ -930,7 +1049,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
     if (uploadDate !== today) {
       setUploadCount(0);
       setUploadDate(today);
-      localStorage.setItem(UPLOAD_COUNT_KEY, '0');
+      localStorage.setItem(UPLOAD_COUNT_KEY, "0");
       localStorage.setItem(UPLOAD_DATE_KEY, today);
     }
 
@@ -949,7 +1068,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           if (event.target?.result) {
             resolve(event.target.result as string);
           } else {
-            reject(new Error('Failed to read file'));
+            reject(new Error("Failed to read file"));
           }
         };
         reader.onerror = () => reject(reader.error);
@@ -958,8 +1077,10 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       const compressedDataUrl = await compressImage(dataUrl);
       setImagePreview(compressedDataUrl);
     } catch (error) {
-      console.error('Error processing image:', error);
-      alert('Failed to process image. Please try a different image or a smaller file.');
+      console.error("Error processing image:", error);
+      alert(
+        "Failed to process image. Please try a different image or a smaller file."
+      );
     } finally {
       setIsCompressingImage(false);
     }
@@ -968,21 +1089,21 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const clearImagePreview = () => {
     setImagePreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const handlePromptClick = (prompt: string) => {
     setInputValue(prompt);
-    setCurrentSuggestion('');
+    setCurrentSuggestion("");
     inputRef.current?.focus();
   };
 
   const clearChatHistory = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem('tool-suggestion');
+        localStorage.removeItem("tool-suggestion");
         setShowPrompt(true);
         setMessages([]);
         setShowBudgetTab(false);
@@ -1003,14 +1124,16 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           if (!userMessageSentDuringLoading.current) {
             setTimeout(() => {
               const randomGreeting =
-                mateyResponses.greeting[Math.floor(Math.random() * mateyResponses.greeting.length)];
+                mateyResponses.greeting[
+                  Math.floor(Math.random() * mateyResponses.greeting.length)
+                ];
               setMessages([
                 {
-                  id: '1',
+                  id: "1",
                   text: randomGreeting,
-                  sender: 'matey',
+                  sender: "matey",
                   timestamp: new Date(),
-                  expression: 'hello',
+                  expression: "hello",
                 },
               ]);
               setIsInitialized(true);
@@ -1020,7 +1143,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           setIsInitialLoading(false);
         }, 3000);
       } catch (error) {
-        console.error('Error clearing localStorage:', error);
+        console.error("Error clearing localStorage:", error);
       }
     }
   };
@@ -1036,7 +1159,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const handleFeedback = useCallback(
     async (
       messageId: string,
-      feedbackType: 'helpful' | 'unhelpful',
+      feedbackType: "helpful" | "unhelpful",
       messageText?: string,
       messageTimestamp?: string
     ) => {
@@ -1055,9 +1178,12 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           reportStatus: false,
         };
 
-        await axios.post(`${import.meta.env.VITE_SERVER_URL}/add-feedback`, payload);
+        await axios.post(
+          `${import.meta.env.VITE_SERVER_URL}/add-feedback`,
+          payload
+        );
       } catch (err) {
-        console.error('Feedback submission error:', err);
+        console.error("Feedback submission error:", err);
       } finally {
         setFeedback(false);
       }
@@ -1078,18 +1204,28 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   );
 
   const handleDropdownAction = useCallback(
-    (action: string, messageId?: string, messageText?: string, messageTimestamp?: string) => {
-      if (action === 'report') {
+    (
+      action: string,
+      messageId?: string,
+      messageText?: string,
+      messageTimestamp?: string
+    ) => {
+      if (action === "report") {
         setShowReportModal(true);
-      } else if (action === 'helpful' || action === 'unhelpful') {
+      } else if (action === "helpful" || action === "unhelpful") {
         if (messageId) {
-          handleFeedback(messageId, action as 'helpful' | 'unhelpful', messageText, messageTimestamp);
+          handleFeedback(
+            messageId,
+            action as "helpful" | "unhelpful",
+            messageText,
+            messageTimestamp
+          );
         }
       } else {
         console.log(`Action: ${action}`);
       }
 
-      if (action !== 'helpful' && action !== 'unhelpful') {
+      if (action !== "helpful" && action !== "unhelpful") {
         setShowDropdown(null);
       }
     },
@@ -1101,7 +1237,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       if (chatContainerRef.current) {
         chatContainerRef.current.scrollTo({
           top: chatContainerRef.current.scrollHeight,
-          behavior: 'smooth',
+          behavior: "smooth",
         });
       }
     }, 100);
@@ -1110,33 +1246,40 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const handleQuizComplete = (answers: Record<string, string>) => {
     setShowMicroQuiz(false);
     setQuizCompleted(true);
-    if (answers.tools === 'None/very few') {
+    if (answers.tools === "None/very few") {
       setUserOwnedTools([]);
-    } else if (answers.tools === 'Basic toolkit') {
-      setUserOwnedTools(['hammer', 'screwdriver set', 'measuring tape']);
-    } else if (answers.tools === 'Quite a few') {
-      setUserOwnedTools(['hammer', 'screwdriver set', 'measuring tape', 'drill', 'level', 'pliers']);
-    } else if (answers.tools === 'Professional set') {
+    } else if (answers.tools === "Basic toolkit") {
+      setUserOwnedTools(["hammer", "screwdriver set", "measuring tape"]);
+    } else if (answers.tools === "Quite a few") {
       setUserOwnedTools([
-        'hammer',
-        'screwdriver set',
-        'measuring tape',
-        'drill',
-        'level',
-        'pliers',
-        'power tools',
-        'specialty tools',
+        "hammer",
+        "screwdriver set",
+        "measuring tape",
+        "drill",
+        "level",
+        "pliers",
+      ]);
+    } else if (answers.tools === "Professional set") {
+      setUserOwnedTools([
+        "hammer",
+        "screwdriver set",
+        "measuring tape",
+        "drill",
+        "level",
+        "pliers",
+        "power tools",
+        "specialty tools",
       ]);
     }
     setShowBudgetSlider(true);
   };
 
   const handleBudgetTabSelect = (tier: string) => {
-    if (tier === 'matesChoice') {
+    if (tier === "matesChoice") {
       setCurrentBudget(20);
-    } else if (tier === 'buildersPick') {
+    } else if (tier === "buildersPick") {
       setCurrentBudget(50);
-    } else if (tier === 'tradiesDream') {
+    } else if (tier === "tradiesDream") {
       setCurrentBudget(80);
     }
     setShowBudgetSlider(true);
@@ -1144,11 +1287,11 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   const handleCreativeSelect = (tier: string) => {
     setShowCreativeReveal(false);
-    if (tier === 'matesChoice') {
+    if (tier === "matesChoice") {
       setCurrentBudget(20);
-    } else if (tier === 'buildersPick') {
+    } else if (tier === "buildersPick") {
       setCurrentBudget(50);
-    } else if (tier === 'tradiesDream') {
+    } else if (tier === "tradiesDream") {
       setCurrentBudget(80);
     }
     setShowBudgetSlider(true);
@@ -1156,43 +1299,57 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 
   const handleBudgetComplete = () => {
     setBudgetCompleted(true);
-    let budgetTier = 'low';
+    let budgetTier = "low";
     if (currentBudget <= 35) {
-      budgetTier = 'low';
+      budgetTier = "low";
     } else if (currentBudget <= 65) {
-      budgetTier = 'medium';
+      budgetTier = "medium";
     } else {
-      budgetTier = 'high';
+      budgetTier = "high";
     }
 
     interface RawProduct {
       name: string;
       price: number;
       imageUrl: string;
-      budgetTier: 'low' | 'medium' | 'high' | 'premium' | 'luxury';
+      budgetTier: "low" | "medium" | "high" | "premium" | "luxury";
     }
     let relevantProducts: RawProduct[] = [];
     if (extractedProductNames.length > 0) {
-      relevantProducts = getProductsByKeywords(extractedProductNames).filter((p) => {
-        if (budgetTier === 'low') return p.budgetTier === 'low';
-        if (budgetTier === 'medium') return ['low', 'medium'].includes(p.budgetTier);
-        return ['low', 'medium', 'high', 'premium', 'luxury'].includes(p.budgetTier);
-      });
+      relevantProducts = getProductsByKeywords(extractedProductNames).filter(
+        (p) => {
+          if (budgetTier === "low") return p.budgetTier === "low";
+          if (budgetTier === "medium")
+            return ["low", "medium"].includes(p.budgetTier);
+          return ["low", "medium", "high", "premium", "luxury"].includes(
+            p.budgetTier
+          );
+        }
+      );
     }
     if (relevantProducts.length === 0 && extractedKeywords.length > 0) {
-      relevantProducts = getProductsByKeywords(extractedKeywords).filter((p) => {
-        if (budgetTier === 'low') return p.budgetTier === 'low';
-        if (budgetTier === 'medium') return ['low', 'medium'].includes(p.budgetTier);
-        return ['low', 'medium', 'high', 'premium', 'luxury'].includes(p.budgetTier);
-      });
+      relevantProducts = getProductsByKeywords(extractedKeywords).filter(
+        (p) => {
+          if (budgetTier === "low") return p.budgetTier === "low";
+          if (budgetTier === "medium")
+            return ["low", "medium"].includes(p.budgetTier);
+          return ["low", "medium", "high", "premium", "luxury"].includes(
+            p.budgetTier
+          );
+        }
+      );
     }
     if (relevantProducts.length === 0) {
-      if (budgetTier === 'low') {
-        relevantProducts = mockProducts.filter((p) => p.budgetTier === 'low');
-      } else if (budgetTier === 'medium') {
-        relevantProducts = mockProducts.filter((p) => ['low', 'medium'].includes(p.budgetTier));
+      if (budgetTier === "low") {
+        relevantProducts = mockProducts.filter((p) => p.budgetTier === "low");
+      } else if (budgetTier === "medium") {
+        relevantProducts = mockProducts.filter((p) =>
+          ["low", "medium"].includes(p.budgetTier)
+        );
       } else {
-        relevantProducts = mockProducts.filter((p) => ['medium', 'high', 'premium'].includes(p.budgetTier));
+        relevantProducts = mockProducts.filter((p) =>
+          ["medium", "high", "premium"].includes(p.budgetTier)
+        );
       }
     }
     const formattedProducts = relevantProducts.slice(0, 5).map((p) => ({
@@ -1200,13 +1357,18 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
       price: p.price,
       assets: p.imageUrl,
     }));
-    const tierLabel = budgetTier === 'low' ? 'Good' : budgetTier === 'medium' ? 'Better' : 'Best';
+    const tierLabel =
+      budgetTier === "low"
+        ? "Good"
+        : budgetTier === "medium"
+        ? "Better"
+        : "Best";
     const toolSuggestion: Message = {
       id: Date.now().toString(),
       text: `Based on your ${tierLabel} range preference, here are some tools that might help:`,
-      sender: 'matey',
+      sender: "matey",
       timestamp: new Date(),
-      expression: 'offer',
+      expression: "offer",
       isToolSuggestion: true,
       budget: currentBudget,
       keywords: extractedKeywords,
@@ -1215,14 +1377,14 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
           ? formattedProducts
           : [
               {
-                name: 'Cordless Drill',
+                name: "Cordless Drill",
                 price: 50,
-                assets: '/assets/images/demo/product1.png',
+                assets: "/assets/images/demo/product1.png",
               },
               {
-                name: 'Self-Drill Wall Anchors',
+                name: "Self-Drill Wall Anchors",
                 price: 15,
-                assets: '/assets/images/demo/product2.png',
+                assets: "/assets/images/demo/product2.png",
               },
             ],
     };
@@ -1240,13 +1402,15 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
   const handleBudgetCancel = () => {
     setShowBudgetSlider(false);
     const randomCancelResponse =
-      mateyResponses.sliderCancel[Math.floor(Math.random() * mateyResponses.sliderCancel.length)];
+      mateyResponses.sliderCancel[
+        Math.floor(Math.random() * mateyResponses.sliderCancel.length)
+      ];
     const cancelMessage: Message = {
       id: Date.now().toString(),
       text: randomCancelResponse,
-      sender: 'matey',
+      sender: "matey",
       timestamp: new Date(),
-      expression: 'smile',
+      expression: "smile",
     };
 
     const updatedMessages = [...messages, cancelMessage];
@@ -1403,7 +1567,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({ children }) => 
 export const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within an AppContextProvider');
+    throw new Error("useAppContext must be used within an AppContextProvider");
   }
   return context;
 };

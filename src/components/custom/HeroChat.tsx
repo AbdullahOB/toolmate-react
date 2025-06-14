@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useCallback, useRef } from "react";
+import React, { useMemo, useCallback, useRef, useState } from "react";
 import { useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
@@ -152,7 +152,6 @@ export default function HeroChat() {
       document.body.style.top = "";
     }
   }, [setIsMobileFullHeight]);
-
   const focusAndAlignInput = useCallback(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -161,7 +160,7 @@ export default function HeroChat() {
       didOpenScroll.current = false;
 
       // Focus the input first without scrolling
-      el.focus({ preventScroll: true });
+      // el.focus({ preventScroll: true });
 
       // Simple, gentle scroll with a short delay
       setTimeout(() => {
@@ -361,6 +360,19 @@ export default function HeroChat() {
     const shuffled = [...prompts].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
   }, [prompts]);
+
+  const [deviceHeight, setDeviceHeight] = useState(0);
+  // get browser
+  useEffect(() => {
+    const handleResize = () => {
+      setDeviceHeight(window.innerHeight);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const ProductCard = React.memo(
     ({ product, idx }: { product: any; idx: number }) => {
@@ -583,8 +595,7 @@ export default function HeroChat() {
 
   const clearChatHistoryWithReset = useCallback(() => {
     clearChatHistory();
-    setIsMobileChatOpened(false);
-  }, [clearChatHistory, setIsMobileChatOpened]);
+  }, [clearChatHistory]);
 
   const exitMobileChat = useCallback(() => {
     setIsMobileChatOpened(false);
@@ -690,19 +701,22 @@ export default function HeroChat() {
         </div>
         <div
           ref={chatContainerRef}
-          className={`flex-1 overflow-y-auto relative px-2 pr-12 py-6 bg-white/40 ${
-            isMobileFullHeight
-              ? showBudgetSlider
-                ? "h-[465px] md:h-[650px]"
+          className={`flex-1 overflow-y-auto ${
+            deviceHeight < 660 ? "h-[290px]" : "h-[400px]"
+          } relative px-2 pr-12 py-6 bg-white/40
+            ${
+              isMobileFullHeight
+                ? showBudgetSlider
+                  ? "h-[465px] md:h-[650px]"
+                  : showPrompt
+                  ? "h-[407px] md:h-[477px]"
+                  : "h-[473px] md:h-[658px]"
+                : showBudgetSlider
+                ? "h-[388px] md:h-[573px]"
                 : showPrompt
-                ? "h-[407px] md:h-[477px]"
-                : "h-[473px] md:h-[658px]"
-              : showBudgetSlider
-              ? "h-[388px] md:h-[573px]"
-              : showPrompt
-              ? "h-[330px] md:h-[400px]"
-              : "h-[396px] md:h-[581px]"
-          }`}
+                ? "h-[330px] md:h-[400px]"
+                : "h-[396px] md:h-[581px]"
+            }`}
         >
           <AnimatePresence mode="popLayout">
             {messages.map((message) => (
@@ -722,6 +736,7 @@ export default function HeroChat() {
                   }
                 }}
               >
+                {/* user message */}
                 <div
                   className={`flex z-5 relative ${
                     message.sender === "user" ? "justify-end" : "justify-start"
@@ -978,6 +993,7 @@ export default function HeroChat() {
                       )}
                   </AnimatePresence>
                 </div>
+                {/* report modal */}
                 <AnimatePresence>
                   <ReportModal
                     isOpen={showReportModal}
@@ -1065,7 +1081,11 @@ export default function HeroChat() {
           <div ref={chatContainerRef} />
         </div>
         {showPrompt ? (
-          <div className="p-3 bg-white/70 border-t border-yellow/30 relative">
+          <div
+            className={`p-3 bg-white/70 w-full border-t border-yellow/30 fixed z-0 bottom-[60px]
+          ${isMobile ? "bottom-[60px]" : " bottom-0"}
+          `}
+          >
             <div
               ref={scrollContainerRef}
               className="flex gap-3 md:flex-wrap overflow-x-auto"
@@ -1086,7 +1106,6 @@ export default function HeroChat() {
                 </button>
               ))}
             </div>
-            <div className="absolute top-0 block md:hidden right-0 h-full w-16 pointer-events-none bg-gradient-to-l from-lightYellow/70 to-transparent" />
           </div>
         ) : (
           ""
@@ -1161,7 +1180,11 @@ export default function HeroChat() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30">
+        <div
+          className={`p-2 sm:p-4 ${
+            deviceHeight < 660 ? "fixed bottom-0 w-full" : ""
+          } bg-white border-t border-yellow/30`}
+        >
           <div className="flex items-center gap-3">
             {(subscriptionData ||
               (showUploadButton && uploadCount < MAX_FREE_UPLOADS)) && (

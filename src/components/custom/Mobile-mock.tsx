@@ -35,7 +35,7 @@ export function MobileMock() {
         className={`absolute ${
           showExplanationModal ? "z-0" : "z-40"
         } -top-[58px] scale-[0.4] -left-[275px] w-[1px] h-[1px] ${
-          isMobileChatOpened ? "hidden" : ""
+          isMobileFullHeight ? "hidden" : ""
         }`}
         animationData={MateyGfx}
         style={{
@@ -45,7 +45,7 @@ export function MobileMock() {
         loop={true}
       />
       <div className="hidden lg:flex"></div>
-      <div className={` lg:hidden w-full h-full`}>
+      <div className={`lg:hidden w-full h-full`}>
         <img
           loading="lazy"
           src="/assets/matey/langingMatey.svg"
