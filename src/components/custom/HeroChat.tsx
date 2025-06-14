@@ -2,6 +2,7 @@
 import React, { useMemo, useCallback, useRef, useState } from "react";
 import { useEffect, useLayoutEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useMobileChat } from "@/hooks/useMobileChat";
 
 import {
   Send,
@@ -32,7 +33,8 @@ const MAX_FREE_UPLOADS = 2;
 
 export default function HeroChat() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const didOpenScroll = useRef(false);
+  // Mobile behavior such as fullscreen mode and focus handling
+  const { focusAndAlignInput, unFocusAndRestore } = useMobileChat(inputRef);
   const lastScrollPosition = useRef(0);
   const resizeDebounce = useRef<number>();
   const location = useLocation();
@@ -136,49 +138,7 @@ export default function HeroChat() {
     [isMobile, shouldReduceMotion]
   );
 
-  useEffect(() => {
-    if (window.innerWidth <= 768) {
-      setIsMobileFullHeight(true);
-      setIsMobileChatOpened(true);
-    }
-  }, [setIsMobileFullHeight, setIsMobileChatOpened]);
-
-  const resetMobileState = useCallback(() => {
-    if (window.innerWidth <= 768) {
-      setIsMobileFullHeight(false);
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-      document.body.style.top = "";
-    }
-  }, [setIsMobileFullHeight]);
-
-  const focusAndAlignInput = useCallback(() => {
-    const el = inputRef.current;
-    if (!el) return;
-    if (window.innerWidth <= 768) {
-      setIsMobileChatOpened(true);
-      didOpenScroll.current = false;
-
-      // Focus the input first without scrolling
-      // el.focus({ preventScroll: true });
-
-      // Simple, gentle scroll with a short delay
-      setTimeout(() => {
-        el.scrollIntoView({
-          block: "start",
-          behavior: "smooth", // Use auto for a more immediate response
-        });
-        didOpenScroll.current = true;
-      }, 150); // Shorter delay for more immediate response
-    }
-  }, [setIsMobileChatOpened]);
-
-  const unFocusAndRestore = useCallback(() => {
-    if (window.innerWidth <= 768) {
-      inputRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
-    }
-  }, []);
+  // Mobile interaction handlers are provided by the useMobileChat hook
 
   // Always ensure the tagline is visible regardless of keyboard state or device
   useLayoutEffect(() => {
@@ -591,8 +551,6 @@ export default function HeroChat() {
       }
     }
   );
-
-  // resetMobileState function moved above to fix lint errors
 
   const clearChatHistoryWithReset = useCallback(() => {
     clearChatHistory();
