@@ -1082,9 +1082,8 @@ export default function HeroChat() {
         </div>
         {showPrompt ? (
           <div
-            className={`p-3 bg-white/70 w-full border-t border-yellow/30 fixed z-0 bottom-[60px]
-          ${isMobile ? "bottom-[60px]" : " bottom-0"}
-          `}
+            // bottom-max + 10px
+            className={`p-3 bg-white/70 w-full border-t border-yellow/30 z-10 fixed bottom-[calc(1vh-60px)]`}
           >
             <div
               ref={scrollContainerRef}
