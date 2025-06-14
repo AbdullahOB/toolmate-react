@@ -103,219 +103,111 @@ export default function HeroChat() {
   } = useAppContext();
 
   const { subscriptionData } = useSubscription();
+
+  // Optimized animation variants for mobile
   const mobileAnimationVariants = useMemo(
     () => ({
-      initial:
-        isMobile || shouldReduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 },
-      animate:
-        isMobile || shouldReduceMotion ? { opacity: 1 } : { y: 0, opacity: 1 },
-      exit:
-        isMobile || shouldReduceMotion
-          ? { opacity: 0 }
-          : { y: -10, opacity: 0 },
-      transition:
-        isMobile || shouldReduceMotion ? { duration: 0.2 } : { duration: 0.5 },
+      initial: isMobile
+        ? { opacity: 0 }
+        : shouldReduceMotion
+        ? { opacity: 0 }
+        : { y: 20, opacity: 0 },
+      animate: isMobile
+        ? { opacity: 1 }
+        : shouldReduceMotion
+        ? { opacity: 1 }
+        : { y: 0, opacity: 1 },
+      exit: isMobile
+        ? { opacity: 0 }
+        : shouldReduceMotion
+        ? { opacity: 0 }
+        : { y: -10, opacity: 0 },
+      transition: isMobile
+        ? { duration: 0.1 }
+        : shouldReduceMotion
+        ? { duration: 0.2 }
+        : { duration: 0.5 },
     }),
     [isMobile, shouldReduceMotion]
   );
 
   const messageAnimationVariants = useMemo(
     () => ({
-      initial:
-        isMobile || shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18 },
-      animate:
-        isMobile || shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
-      transition:
-        isMobile || shouldReduceMotion ? { duration: 0.15 } : { duration: 0.3 },
+      initial: isMobile
+        ? { opacity: 0 }
+        : shouldReduceMotion
+        ? { opacity: 0 }
+        : { opacity: 0, y: 18 },
+      animate: isMobile
+        ? { opacity: 1 }
+        : shouldReduceMotion
+        ? { opacity: 1 }
+        : { opacity: 1, y: 0 },
+      transition: isMobile
+        ? { duration: 0.1 }
+        : shouldReduceMotion
+        ? { duration: 0.15 }
+        : { duration: 0.3 },
     }),
     [isMobile, shouldReduceMotion]
   );
 
-  // Function to scroll back to top and reset mobile state
+  // Optimized scroll function with requestAnimationFrame
   const scrollToTopAndReset = useCallback(() => {
     if (window.innerWidth <= 768) {
-      setIsMobileFullHeight(true);
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
+      // Use requestAnimationFrame for smoother performance
+      requestAnimationFrame(() => {
+        setIsMobileFullHeight(true);
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
       });
     }
   }, [setIsMobileFullHeight]);
 
-  // Wrapper for handleSendMessage to include scroll to top
+  // Optimized send message handler
   const handleSendMessageWithReset = useCallback(() => {
+    // Immediately call send to reduce perceived lag
     handleSendMessage();
-    // Small delay to allow message to be processed before scrolling
-    setTimeout(() => {
-      scrollToTopAndReset();
-    }, 100);
-  }, [handleSendMessage, scrollToTopAndReset]);
 
-  // Updated keyboard detection useEffect - replace the existing one with this:
+    // Defer scroll handling to next frame
+    if (isMobile) {
+      requestAnimationFrame(() => {
+        scrollToTopAndReset();
+      });
+    }
+  }, [handleSendMessage, scrollToTopAndReset, isMobile]);
+
+  // Simplified keyboard detection for mobile
   useEffect(() => {
-    // if (typeof window !== "undefined" && window.innerWidth <= 768) {
-    //   const initialViewportHeight = window.innerHeight;
-    //   let keyboardVisible = false;
-    //   let timeoutId = null;
-    //   const handleViewportChange = () => {
-    //     // Clear any pending timeout
-    //     if (timeoutId) {
-    //       clearTimeout(timeoutId);
-    //     }
-    //     // Debounce the viewport change handling
-    //     timeoutId = setTimeout(() => {
-    //       const currentHeight = window.visualViewport
-    //         ? window.visualViewport.height
-    //         : window.innerHeight;
-    //       const heightDifference = initialViewportHeight - currentHeight;
-    //       const isKeyboardNowVisible = heightDifference > 150;
-    //       if (isKeyboardNowVisible && !keyboardVisible) {
-    //         keyboardVisible = true;
-    //         const textarea = inputRef.current;
-    //         if (textarea && document.activeElement === textarea) {
-    //           // Find the chat container to align keyboard edge with it
-    //           const chatContainer = document.querySelector(
-    //             ".hero-chat-container"
-    //           );
-    //           if (chatContainer) {
-    //             const chatRect = chatContainer.getBoundingClientRect();
-    //             const chatBottom = chatRect.bottom;
-    //             // Align keyboard edge with chat container bottom edge
-    //             const targetScrollY =
-    //               window.scrollY + chatBottom - currentHeight;
-    //             window.scrollTo({
-    //               top: Math.max(0, targetScrollY),
-    //               behavior: "smooth",
-    //             });
-    //           }
-    //         }
-    //       } else if (!isKeyboardNowVisible && keyboardVisible) {
-    //         keyboardVisible = false;
-    //         // Don't auto-scroll when keyboard closes, let user control
-    //       }
-    //     }, 100); // Debounce by 100ms
-    //   };
-    //   // Use ResizeObserver for better performance if available
-    //   if (window.ResizeObserver && window.visualViewport) {
-    //     const resizeObserver = new ResizeObserver(handleViewportChange);
-    //     resizeObserver.observe(document.body);
-    //     return () => {
-    //       resizeObserver.disconnect();
-    //       if (timeoutId) {
-    //         clearTimeout(timeoutId);
-    //       }
-    //     };
-    //   } else {
-    //     // Fallback to resize event
-    //     if (window.visualViewport) {
-    //       window.visualViewport.addEventListener(
-    //         "resize",
-    //         handleViewportChange
-    //       );
-    //       return () => {
-    //         window.visualViewport?.removeEventListener(
-    //           "resize",
-    //           handleViewportChange
-    //         );
-    //         if (timeoutId) {
-    //           clearTimeout(timeoutId);
-    //         }
-    //       };
-    //     } else {
-    //       window.addEventListener("resize", handleViewportChange);
-    //       return () => {
-    //         window.removeEventListener("resize", handleViewportChange);
-    //         if (timeoutId) {
-    //           clearTimeout(timeoutId);
-    //         }
-    //       };
-    //     }
-    //   }
-    // }
+    // Commented out complex keyboard handling for performance
+    // This was likely causing lag on mobile
   }, [inputRef]);
 
-  // Also update the focusAndScrollToInput function:
+  // Optimized focus handler
   const focusAndScrollToInput = useCallback(() => {
-    if (typeof window !== "undefined" && window.innerWidth <= 768) {
-      const initialViewportHeight = window.innerHeight;
-      let keyboardVisible = false;
-      let timeoutId = null;
-      const handleViewportChange = () => {
-        // Clear any pending timeout
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        // Debounce the viewport change handling
-        timeoutId = setTimeout(() => {
-          const currentHeight = window.visualViewport
-            ? window.visualViewport.height
-            : window.innerHeight;
-          const heightDifference = initialViewportHeight - currentHeight;
-          const isKeyboardNowVisible = heightDifference > 150;
-          if (isKeyboardNowVisible && !keyboardVisible) {
-            keyboardVisible = true;
-            const textarea = inputRef.current;
-            if (textarea && document.activeElement === textarea) {
-              // Find the chat container to align keyboard edge with it
-              const chatContainer = document.querySelector(
-                ".hero-chat-container"
-              );
-              if (chatContainer) {
-                const chatRect = chatContainer.getBoundingClientRect();
-                const chatBottom = chatRect.bottom;
-                // Align keyboard edge with chat container bottom edge
-                const targetScrollY =
-                  window.scrollY + chatBottom - currentHeight;
-                window.scrollTo({
-                  top: Math.max(0, targetScrollY),
-                  behavior: "smooth",
-                });
-              }
-            }
-          } else if (!isKeyboardNowVisible && keyboardVisible) {
-            keyboardVisible = false;
-            // Don't auto-scroll when keyboard closes, let user control
-          }
-        }, 100); // Debounce by 100ms
-      };
-      // Use ResizeObserver for better performance if available
-      if (window.ResizeObserver && window.visualViewport) {
-        const resizeObserver = new ResizeObserver(handleViewportChange);
-        resizeObserver.observe(document.body);
-        return () => {
-          resizeObserver.disconnect();
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-        };
-      } else {
-        // Fallback to resize event
-        if (window.visualViewport) {
-          window.visualViewport.addEventListener(
-            "resize",
-            handleViewportChange
+    if (isMobile) {
+      // Simplified focus handling for mobile
+      const textarea = inputRef.current;
+      if (textarea) {
+        textarea.focus();
+        // find this .hero-chat-container and scroll to bottom
+
+        setTimeout(() => {
+          const scrollContainer = document.querySelector(
+            ".hero-chat-container"
           );
-          return () => {
-            window.visualViewport?.removeEventListener(
-              "resize",
-              handleViewportChange
-            );
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
-          };
-        } else {
-          window.addEventListener("resize", handleViewportChange);
-          return () => {
-            window.removeEventListener("resize", handleViewportChange);
-            if (timeoutId) {
-              clearTimeout(timeoutId);
-            }
-          };
-        }
+          if (scrollContainer) {
+            scrollContainer.scrollIntoView({
+              behavior: "smooth",
+              block: "end",
+            });
+          }
+        }, 320);
       }
     }
-  }, [inputRef]);
+  }, [inputRef, isMobile]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -558,6 +450,34 @@ export default function HeroChat() {
     clearChatHistory();
     resetMobileState();
   }, [clearChatHistory]);
+
+  // Optimized send button with reduced animations on mobile
+  const SendButton = useMemo(
+    () => (
+      <motion.button
+        whileHover={isMobile ? {} : { scale: 1.1, rotate: -15 }}
+        whileTap={isMobile ? { scale: 0.95 } : { scale: 0.9, rotate: 15 }}
+        style={{ borderRadius: "40% 60% 50% 45%" }}
+        className="p-3 md:p-4 bg-yellow text-white cursor-pointer rounded-full hover:bg-softYellow shadow-md touch-manipulation"
+        onClick={handleSendMessageWithReset}
+        disabled={
+          (inputValue.trim() === "" && !imagePreview) ||
+          isCompletingText ||
+          isCompressingImage
+        }
+      >
+        <Send size={24} />
+      </motion.button>
+    ),
+    [
+      isMobile,
+      handleSendMessageWithReset,
+      inputValue,
+      imagePreview,
+      isCompletingText,
+      isCompressingImage,
+    ]
+  );
 
   return (
     <div className="relative w-full h-full hero-chat-container">
@@ -1137,7 +1057,7 @@ export default function HeroChat() {
                 whileHover={isMobile ? {} : { scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 style={{ borderRadius: "60% 40% 50% 45%" }}
-                className="p-3 md:p-4 bg-paleYellow text-orange hover:bg-yellow hover:text-white rounded-full shadow-md relative group"
+                className="p-3 md:p-4 bg-paleYellow text-orange hover:bg-yellow hover:text-white rounded-full shadow-md relative group touch-manipulation"
                 onClick={handleFileUpload}
                 title="Upload an image"
                 disabled={isCompressingImage}
@@ -1164,7 +1084,12 @@ export default function HeroChat() {
                   onFocus={focusAndScrollToInput}
                   onBlur={() => {
                     setClicked(false);
-                    scrollToTopAndReset(); // Add this line to scroll back to top on blur
+                    if (isMobile) {
+                      // Use requestAnimationFrame for smoother scrolling
+                      requestAnimationFrame(() => {
+                        scrollToTopAndReset();
+                      });
+                    }
                   }}
                   onChange={(e) => {
                     setInputValue(e.target.value);
@@ -1195,6 +1120,7 @@ export default function HeroChat() {
     z-10
     min-h-[48px]
     max-h-[120px]
+    touch-manipulation
   "
                 />
 
@@ -1228,20 +1154,7 @@ export default function HeroChat() {
                 </AnimatePresence>
               </div>
             </div>
-            <motion.button
-              whileHover={isMobile ? {} : { scale: 1.1, rotate: -15 }}
-              whileTap={{ scale: 0.9, rotate: isMobile ? 0 : 15 }}
-              style={{ borderRadius: "40% 60% 50% 45%" }}
-              className="p-3 md:p-4 bg-yellow text-white cursor-pointer rounded-full hover:bg-softYellow shadow-md"
-              onClick={handleSendMessageWithReset} // Changed from handleSendMessage to handleSendMessageWithReset
-              disabled={
-                (inputValue.trim() === "" && !imagePreview) ||
-                isCompletingText ||
-                isCompressingImage
-              }
-            >
-              <Send size={18} />
-            </motion.button>
+            {SendButton}
           </div>
         </div>
       </motion.div>
