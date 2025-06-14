@@ -152,6 +152,7 @@ export default function HeroChat() {
       document.body.style.top = "";
     }
   }, [setIsMobileFullHeight]);
+
   const focusAndAlignInput = useCallback(() => {
     const el = inputRef.current;
     if (!el) return;
@@ -1081,10 +1082,7 @@ export default function HeroChat() {
           <div ref={chatContainerRef} />
         </div>
         {showPrompt ? (
-          <div
-            // bottom-max + 10px
-            className={`p-3 bg-white/70 w-full border-t border-yellow/30 z-10 fixed bottom-[calc(1vh-60px)]`}
-          >
+          <div className="p-3 bg-white/70 border-t border-yellow/30 relative">
             <div
               ref={scrollContainerRef}
               className="flex gap-3 md:flex-wrap overflow-x-auto"
@@ -1105,6 +1103,7 @@ export default function HeroChat() {
                 </button>
               ))}
             </div>
+            <div className="absolute top-0 block md:hidden right-0 h-full w-16 pointer-events-none bg-gradient-to-l from-lightYellow/70 to-transparent" />
           </div>
         ) : (
           ""
