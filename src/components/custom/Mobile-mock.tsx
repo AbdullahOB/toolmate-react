@@ -18,8 +18,8 @@ export function MobileMock() {
   const [deviceHeight, setDeviceHeight] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const containerRef = useRef<HTMLDivElement>();
-  const chatContainerRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Device height and mobile detection
   useEffect(() => {
@@ -62,7 +62,7 @@ export function MobileMock() {
           if (chatContainerRef.current) {
             chatContainerRef.current.scrollIntoView({
               behavior: "smooth",
-              block: "end",
+              block: "start",
             });
           }
         }, 100);
@@ -74,7 +74,7 @@ export function MobileMock() {
           if (containerRef.current) {
             containerRef.current.scrollIntoView({
               behavior: "smooth",
-              block: "end",
+              block: "center",
             });
           }
         }, 100);
@@ -90,47 +90,51 @@ export function MobileMock() {
   // Auto-focus and chat opening - ensure proper frame view on load
   useEffect(() => {
     if (isMobile) {
+      setIsMobileChatOpened(true);
+
       // Ensure both Matey and input are visible on load
       setTimeout(() => {
         if (containerRef.current) {
           containerRef.current.scrollIntoView({
             behavior: "smooth",
-            block: "end", // Changed to 'start' to show Matey and input together
+            block: "start", // Changed to 'start' to show Matey and input together
           });
         }
       }, 500);
     }
-  }, [isMobile]);
+  }, [isMobile, setIsMobileChatOpened]);
 
   // Focus on chat container when writing
   const handleChatFocus = useCallback(() => {
     if (isMobile && containerRef.current) {
+      setIsMobileChatOpened(true);
+
       setTimeout(() => {
         containerRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "end",
+          block: "start",
         });
       }, 100);
     }
-  }, [isMobile]);
+  }, [isMobile, setIsMobileChatOpened]);
 
   // Calculate chat container height - optimized for better frame view
   const getChatHeight = () => {
     if (isChatFullScreen) return "h-[100vh]";
 
     if (deviceHeight < 660) {
-      return "h-[420px]"; // Reduced to fit better with Matey in frame
+      return "h-[480px]"; // Reduced to fit better with Matey in frame
     } else {
-      return isMobileFullHeight ? "h-[440px]" : "h-[440px]"; // Optimized heights
+      return isMobileFullHeight ? "h-[440px]" : "h-[400px]"; // Optimized heights
     }
   };
 
   // Calculate image margins for proper positioning - align thumb with chat edge
   const getImageMargins = () => {
     if (deviceHeight < 660) {
-      return "-mb-[240px] -mt-2"; // Adjusted to align thumb with chat edge
+      return "-mb-[240px] -mt-2"; // Back to original position
     } else {
-      return "-mb-[120px]"; // Adjusted to align thumb with chat edge
+      return "-mb-[120px]"; // Back to original position
     }
   };
 
@@ -177,14 +181,12 @@ export function MobileMock() {
       <AnimatePresence>
         {!isChatFullScreen && (
           <motion.div
-            initial={{ opacity: 0, y: 180 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -180 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
             className="lg:hidden w-full h-full"
           >
-            {/* spacer */}
-            {/* make the image a bit down */}
             <img
               loading="lazy"
               src="/assets/matey/langingMatey.svg"
@@ -200,7 +202,13 @@ export function MobileMock() {
         ref={chatContainerRef}
         className={`lg:w-[480px] ${getChatHeight()} w-[98%] mx-auto lg:mx-0
           lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl
-          ${isMobileChatOpened ? (deviceHeight < 660 ? "mt-10" : "") : "-mt-10"}
+          ${
+            isMobileChatOpened
+              ? deviceHeight < 660
+                ? "mt-10"
+                : "-mt-20"
+              : "mt-0"
+          }
           ${
             isChatFullScreen
               ? "fixed inset-0 w-full max-w-none rounded-none lg:ml-0 lg:mb-0 mt-0"
@@ -211,8 +219,8 @@ export function MobileMock() {
           ${isChatFullScreen ? "p-1" : "p-1"}
         `}
         layout
-        onFocus={handleChatFocus}
-        onClick={handleChatFocus}
+        // onFocus={handleChatFocus}
+        // onClick={handleChatFocus}
         initial={false}
         animate={{
           scale: isChatFullScreen ? 1 : 1,
@@ -226,8 +234,7 @@ export function MobileMock() {
             isChatFullScreen
               ? "rounded-none"
               : "rounded-2xl md:rounded-[1.7rem]"
-          } overflow-hidden bg-white
-          `}
+          } overflow-hidden bg-white`}
         >
           <HeroChat />
         </div>

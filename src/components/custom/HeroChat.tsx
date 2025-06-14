@@ -339,24 +339,24 @@ export default function HeroChat() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    setIsMobileChatOpened(true);
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
-  }, [messages, isTyping, setIsMobileChatOpened]);
+  }, [messages, isTyping]);
 
   // Handle input focus for mobile - optimized
   const handleInputFocus = useCallback(() => {
     if (isMobile) {
       setIsMobileChatOpened(true);
+
       setIsChatFullScreen(true);
 
       // Smooth focus with proper timing
       setTimeout(() => {
         inputRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: "end",
         });
       }, 100);
     }
@@ -493,7 +493,11 @@ export default function HeroChat() {
       {/* Chat Container */}
       <div
         ref={chatContainerRef}
-        className={`flex-1 overflow-y-auto ${getChatContainerHeight()} px-3 py-4 bg-white/40 scroll-smooth`}
+        className={`flex-1 overflow-y-auto ${getChatContainerHeight()} px-3 py-4 bg-white/40 scroll-smooth pr-16`}
+        style={{
+          // Restore original sidebar space
+          paddingRight: isMobile ? "12px" : "64px",
+        }}
       >
         <AnimatePresence mode="popLayout">
           {messages.map((message) => (
