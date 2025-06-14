@@ -49,7 +49,7 @@ export const MobileMock = memo(() => {
   const containerClasses = useMemo(
     () =>
       `lg:w-[460px] w-full lg:mb-10 lg:ml-20 z-10 p-1 md:rounded-[1.8rem] ${
-        isMobileFullHeight ? "mt-10 rounded-2xl" : "rounded-2xl"
+        isMobileFullHeight ? "rounded-2xl" : "rounded-2xl"
       } bg-gradient-to-t from-slate-300 to-softYellow`,
     [isMobileFullHeight]
   );

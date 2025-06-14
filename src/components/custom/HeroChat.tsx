@@ -480,7 +480,11 @@ export default function HeroChat() {
   );
 
   return (
-    <div className="relative w-full h-full hero-chat-container">
+    <div
+      className={`relative w-full h-full hero-chat-container ${
+        isMobileFullHeight ? "-mt-0" : ""
+      }`}
+    >
       <motion.div
         initial={mobileAnimationVariants.initial}
         animate={mobileAnimationVariants.animate}
@@ -1085,10 +1089,9 @@ export default function HeroChat() {
                   onBlur={() => {
                     setClicked(false);
                     if (isMobile) {
-                      // Use requestAnimationFrame for smoother scrolling
-                      requestAnimationFrame(() => {
+                      setTimeout(() => {
                         scrollToTopAndReset();
-                      });
+                      }, 100);
                     }
                   }}
                   onChange={(e) => {
