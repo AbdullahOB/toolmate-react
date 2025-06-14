@@ -1,6 +1,6 @@
 body,
 #root {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   margin: 0 auto;
   text-align: center;
 }
@@ -60,15 +60,15 @@ body,
 
 /* Professional minimalist font styles */
 .font-sans {
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
 }
 
 .font-serif {
-  font-family: 'Georgia', serif;
+  font-family: "Georgia", serif;
 }
 
 .font-mono {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .text-xxs {
@@ -168,9 +168,8 @@ body,
 }
 .hero-chat-container {
   /* normal bottom padding so content isn't flush against the very bottom */
-  padding-bottom: 16px;
   /* when keyboard’s up, this var will be non-zero */
-  padding-bottom: calc(16px + var(--keyboard-offset, 0px));
+  padding-bottom: calc(4px + var(--keyboard-offset, 0px));
   transition: padding-bottom 0.2s ease;
 }
 .input-wrapper {
@@ -179,42 +178,30 @@ body,
   /* or position: fixed; bottom: var(--keyboard-offset, 0px); */
 }
 
-
-
 @media (max-width: 768px) {
   .hero-chat-container {
     -webkit-overflow-scrolling: touch;
     overflow-scrolling: touch;
   }
-  
+
   input:focus {
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
-  
+
   /* Prevent zoom on iOS */
   input[type="text"] {
     font-size: 16px !important;
   }
-  
+
   /* Smooth transforms for keyboard alignment */
   body {
     transition: transform 0.3s ease-out;
   }
-  
+
   /* Ensure input stays visible during keyboard animation */
   .input-wrapper {
     z-index: 9999;
     position: relative;
-  }
-}
-
-/* Alternative approach using CSS environment variables (iOS 11.2+) */
-@supports (padding: max(0px)) {
-  @media (max-width: 768px) {
-    .mobile-input-container {
-      padding-bottom: env(keyboard-inset-height, 0px);
-      transition: padding-bottom 0.3s ease-out;
-    }
   }
 }
