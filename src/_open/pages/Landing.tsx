@@ -136,7 +136,7 @@ export default function Landing() {
                         <div className="relative">
                           <div
                             className={`lg:flex hidden absolute ${
-                              showExplanationModal ? "" : "z-50"
+                              showExplanationModal ? "" : ""
                             } gap-2 items-center justify-center lg:justify-start lg:items-start`}
                           >
                             <ButtonCustom

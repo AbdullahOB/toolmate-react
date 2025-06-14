@@ -154,7 +154,7 @@ export default function HeroChat() {
   }, [setIsMobileFullHeight]);
 
   const focusAndAlignInput = useCallback(() => {
-    const el = inputRef.current;
+    const el = scrollContainerRef.current;
     if (!el) return;
     if (window.innerWidth <= 768) {
       setIsMobileChatOpened(true);
@@ -186,7 +186,7 @@ export default function HeroChat() {
         didOpenScroll.current = true;
       }, 150); // Shorter delay for more immediate response
     }
-  }, [setIsMobileChatOpened]);
+  }, [setIsMobileChatOpened, scrollContainerRef]);
 
   const unFocusAndRestore = useCallback(() => {
     if (window.innerWidth <= 768) {

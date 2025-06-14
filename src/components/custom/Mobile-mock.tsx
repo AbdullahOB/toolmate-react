@@ -23,8 +23,12 @@ export function MobileMock() {
   return (
     <div
       className={`w-full ${
-        isMobileChatOpened ? "mt-8" : "mt-0"
-      } -mb-2 h-full flex lg:flex-row flex-col justify-center p-0 lg:justify-start items-center  relative`}
+        isMobileChatOpened ? "mt-0" : "mt-0"
+      } -mb-2 h-full flex lg:flex-row flex-col p-0 lg:justify-start 
+      text-center
+      justify-center
+      items-center
+      relative`}
     >
       <Lottie
         className={`absolute ${
@@ -46,17 +50,19 @@ export function MobileMock() {
           src="/assets/matey/langingMatey.svg"
           alt="back"
           // if safari
-          className={`w-[280px] h-[280px] mx-auto ${
-            deviceHeight < 660 ? "-mb-[330px]" : "-mb-[145px]"
+          className={`w-96 h-96 ${
+            deviceHeight < 660 ? "-mb-[330px]" : "-mb-[203px]"
           } ${deviceHeight < 660 ? "-mt-2" : ""}`}
         />
       </div>
 
       {deviceHeight < 660 ? (
         <div
-          className={`lg:w-[480px] h-[470px] w-[98%] mx-auto lg:mx-0  lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
-            isMobileChatOpened ? "mt-32" : "mt-0"
-          } bg-gradient-to-t from-slate-300 to-softYellow`}
+          // center
+          className={`lg:w-[480px] w-[98%] mx-auto lg:mx-0
+            lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
+              isMobileChatOpened ? "mt-32" : "mt-0"
+            } bg-gradient-to-t from-slate-300 to-softYellow`}
         >
           <HeroChat />
         </div>
