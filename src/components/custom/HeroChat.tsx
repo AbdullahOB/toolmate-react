@@ -136,12 +136,19 @@ export default function HeroChat() {
     [isMobile, shouldReduceMotion]
   );
 
+  // Enter full screen only after user interaction
   useEffect(() => {
     if (window.innerWidth <= 768) {
-      setIsMobileFullHeight(true);
-      setIsMobileChatOpened(true);
+      setIsMobileFullHeight(isMobileChatOpened);
     }
-  }, [setIsMobileFullHeight, setIsMobileChatOpened]);
+  }, [isMobileChatOpened, setIsMobileFullHeight]);
+
+  // Prevent background scroll when chat is open
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      document.body.style.overflow = isMobileChatOpened ? "hidden" : "";
+    }
+  }, [isMobileChatOpened]);
 
   const resetMobileState = useCallback(() => {
     if (window.innerWidth <= 768) {

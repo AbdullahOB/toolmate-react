@@ -23,20 +23,14 @@ export function MobileMock() {
   // is chatting, when the user is chatting the container will be full screen
   return (
     <div
-      className={`w-full mt-5 ${
-        isMobileChatOpened ? "mt-0" : "mt-0"
-      } -mb-2 h-full flex lg:flex-row flex-col p-0 lg:justify-start 
-      text-center
-      justify-center
-      items-center
-      relative`}
+      className={`w-full ${
+        isMobileChatOpened ? "fixed inset-0 z-50" : "mt-5"
+      } -mb-2 ${isMobileChatOpened ? "h-[100dvh]" : "h-full"} flex lg:flex-row flex-col p-0 lg:justify-start text-center justify-center items-center relative`}
     >
       <Lottie
         className={`absolute ${
           showExplanationModal ? "z-0" : "z-40"
-        } -top-[58px] scale-[0.4] -left-[275px] w-[1px] h-[1px] ${
-          isMobileFullHeight ? "hidden" : ""
-        }`}
+        } -top-[58px] scale-[0.4] -left-[275px] w-[1px] h-[1px]`}
         animationData={MateyGfx}
         style={{
           width: "100%",
@@ -59,21 +53,19 @@ export function MobileMock() {
 
       {deviceHeight < 660 ? (
         <div
-          // center
-          className={`lg:w-[480px] h-[440px] w-[98%] mx-auto lg:mx-0
-            lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
-              isMobileChatOpened ? "mt-32" : "mt-0"
-            } bg-gradient-to-t from-slate-300 to-softYellow`}
+          className={`lg:w-[480px] w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl bg-gradient-to-t from-slate-300 to-softYellow ${
+            isMobileChatOpened ? "mt-0" : "mt-0"
+          }`}
+          style={{ height: isMobileChatOpened ? "100dvh" : "440px" }}
         >
           <HeroChat />
         </div>
       ) : (
         <div
-          className={`lg:w-[480px] ${
-            isMobileFullHeight ? "h-[440px]" : ""
-          } w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
-            isMobileChatOpened ? "" : "mt-0"
-          } bg-gradient-to-t from-slate-300 to-softYellow`}
+          className={`lg:w-[480px] w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl bg-gradient-to-t from-slate-300 to-softYellow ${
+            isMobileChatOpened ? "mt-0" : "mt-0"
+          }`}
+          style={{ height: isMobileChatOpened ? "100dvh" : isMobileFullHeight ? "440px" : undefined }}
         >
           <HeroChat />
         </div>
