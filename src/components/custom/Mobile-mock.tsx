@@ -21,6 +21,7 @@ export function MobileMock() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
 
   // Device height and mobile detection
   useEffect(() => {
@@ -81,10 +82,10 @@ export function MobileMock() {
 
       // Ensure both Matey and input are visible on load
       setTimeout(() => {
-        if (containerRef.current) {
-          containerRef.current.scrollIntoView({
+        if (inputRef.current) {
+          inputRef.current.scrollIntoView({
             behavior: "smooth",
-            block: "center", // Changed back to center for better positioning
+            block: "start", // Changed back to center for better positioning
           });
         }
       }, 500);
