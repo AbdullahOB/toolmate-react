@@ -154,7 +154,7 @@ export default function HeroChat() {
   }, [setIsMobileFullHeight]);
 
   const focusAndAlignInput = useCallback(() => {
-    const el = scrollContainerRef.current;
+    const el = inputRef.current;
     if (!el) return;
     if (window.innerWidth <= 768) {
       setIsMobileChatOpened(true);
@@ -172,7 +172,7 @@ export default function HeroChat() {
         didOpenScroll.current = true;
       }, 150); // Shorter delay for more immediate response
     }
-  }, [setIsMobileChatOpened, scrollContainerRef]);
+  }, [setIsMobileChatOpened]);
 
   const unFocusAndRestore = useCallback(() => {
     if (window.innerWidth <= 768) {
@@ -1161,7 +1161,7 @@ export default function HeroChat() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30 fixed bottom-0 w-full">
+        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30">
           <div className="flex items-center gap-3">
             {(subscriptionData ||
               (showUploadButton && uploadCount < MAX_FREE_UPLOADS)) && (
