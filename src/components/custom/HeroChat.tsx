@@ -328,12 +328,12 @@ export default function HeroChat() {
     [messages]
   );
 
-  // Chat container height calculation - optimized for frame view
+  // Chat container height calculation - improved for mobile
   const getChatContainerHeight = useCallback(() => {
-    if (isChatFullScreen) return "h-[calc(100vh-140px)]"; // Optimized for full screen
+    if (isChatFullScreen) return "h-[calc(100vh-200px)]"; // More space for budget tab
 
-    // Optimized heights to match MobileMock adjustments
-    const baseHeight = height < 660 ? 320 : 380; // Reduced to fit better with Matey
+    // Better heights to accommodate budget components
+    const baseHeight = height < 660 ? 300 : 340; // Reduced to make room
     return `h-[${baseHeight}px]`;
   }, [height, isChatFullScreen]);
 
@@ -345,22 +345,21 @@ export default function HeroChat() {
     }
   }, [messages, isTyping]);
 
-  // Handle input focus for mobile - optimized
+  // Handle input focus for mobile - don't auto full screen
   const handleInputFocus = useCallback(() => {
     if (isMobile) {
       setIsMobileChatOpened(true);
+      // Don't automatically go full screen - let user tap to expand
 
-      setIsChatFullScreen(true);
-
-      // Smooth focus with proper timing
+      // Just scroll to input
       setTimeout(() => {
         inputRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "end",
+          block: "center",
         });
       }, 100);
     }
-  }, [isMobile, setIsMobileChatOpened, setIsChatFullScreen]);
+  }, [isMobile, setIsMobileChatOpened]);
 
   // Handle input blur for mobile
   const handleInputBlur = useCallback(() => {
@@ -493,9 +492,9 @@ export default function HeroChat() {
       {/* Chat Container */}
       <div
         ref={chatContainerRef}
-        className={`flex-1 overflow-y-auto ${getChatContainerHeight()} px-3 py-4 bg-white/40 scroll-smooth pr-16`}
+        className={`flex-1 overflow-y-auto ${getChatContainerHeight()} px-3 py-4 bg-white/40 scroll-smooth`}
         style={{
-          // Restore original sidebar space
+          // Adjust sidebar space for mobile
           paddingRight: isMobile ? "12px" : "64px",
         }}
       >
@@ -844,48 +843,55 @@ export default function HeroChat() {
         </AnimatePresence>
       </div>
 
-      {/* Suggested prompts */}
+      {/* Suggested prompts - Fixed scroll implementation */}
       {showPrompt && (
         <div className="p-3 bg-white/70 border-t border-yellow/30 relative">
           <div
             ref={scrollContainerRef}
-            className="flex gap-3 md:flex-wrap overflow-x-auto"
+            className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-yellow/30 scrollbar-track-transparent"
+            style={{
+              scrollBehavior: "smooth",
+              WebkitOverflowScrolling: "touch",
+            }}
           >
             {randomPrompts.map((prompt, index) => (
               <button
-                key={index}
+                key={`${prompt}-${index}`} // Better key to ensure re-render
                 style={{
                   borderRadius:
                     index % 2 === 0
                       ? "20px 10px 25px 15px"
                       : "15px 25px 10px 20px",
                 }}
-                className="px-4 py-2 bg-paleYellow text-black rounded-full text-md md:text-lg whitespace-nowrap flex-shrink-0 border-2 border-yellow hover:bg-lightYellow transition-colors"
+                className="px-4 py-2 bg-paleYellow text-black rounded-full text-md md:text-lg whitespace-nowrap flex-shrink-0 border-2 border-yellow hover:bg-lightYellow transition-colors min-w-fit"
                 onClick={() => handlePromptClick(prompt)}
               >
                 {prompt}
               </button>
             ))}
           </div>
-          <div className="absolute top-0 block md:hidden right-0 h-full w-16 pointer-events-none bg-gradient-to-l from-lightYellow/70 to-transparent" />
+          {/* Gradient fade for mobile scroll indicator */}
+          <div className="absolute top-0 right-0 h-full w-8 pointer-events-none bg-gradient-to-l from-white/70 to-transparent md:hidden" />
         </div>
       )}
 
       {/* Chat sidebar */}
       <ChatSidebar currentInput={inputValue} mateyOutput={mateyOutput} />
 
-      {/* Budget components */}
+      {/* Budget components - Better positioning */}
       {showBudgetTab && (
-        <BudgetTab
-          onSelect={handleBudgetTabSelect}
-          baseCost={estimatedBaseCost}
-          onCancel={handleBudgetCancel}
-          location={location.pathname}
-        />
+        <div className="absolute bottom-20 left-0 right-0 z-20">
+          <BudgetTab
+            onSelect={handleBudgetTabSelect}
+            baseCost={estimatedBaseCost}
+            onCancel={handleBudgetCancel}
+            location={location.pathname}
+          />
+        </div>
       )}
 
       {showBudgetSlider && (
-        <div className="px-4 pt-2">
+        <div className="absolute bottom-20 left-0 right-0 px-4 pt-2 z-20">
           <BudgetSlider
             onBudgetChange={handleBudgetChange}
             isActive={showBudgetSlider && !budgetCompleted}

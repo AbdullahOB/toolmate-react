@@ -18,6 +18,7 @@ export function MobileMock() {
   const [deviceHeight, setDeviceHeight] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +37,7 @@ export function MobileMock() {
     };
   }, []);
 
-  // Keyboard detection and viewport management
+  // Improved keyboard detection without auto full-screen
   useEffect(() => {
     if (!isMobile) return;
 
@@ -46,35 +47,21 @@ export function MobileMock() {
     const handleViewportChange = () => {
       const currentHeight = visualViewport.height;
       const screenHeight = window.screen.height;
-      const keyboardHeight = screenHeight - currentHeight;
+      const calculatedKeyboardHeight = screenHeight - currentHeight;
 
       // Keyboard is considered open if more than 150px of height is lost
-      const keyboardOpen = keyboardHeight > 150;
+      const keyboardOpen = calculatedKeyboardHeight > 150;
       setIsKeyboardOpen(keyboardOpen);
+      setKeyboardHeight(calculatedKeyboardHeight);
 
+      // Don't automatically go full screen - let user interaction handle this
       if (keyboardOpen) {
-        // Keyboard opened - enter full screen and focus on container
-        setIsChatFullScreen(true);
-        setIsMobileChatOpened(true);
-
-        // Align keyboard top edge with grey border
+        // Just ensure chat is positioned properly
         setTimeout(() => {
-          if (chatContainerRef.current) {
+          if (chatContainerRef.current && !isChatFullScreen) {
             chatContainerRef.current.scrollIntoView({
               behavior: "smooth",
               block: "start",
-            });
-          }
-        }, 100);
-      } else {
-        // Keyboard closed - exit full screen and refocus container
-        setIsChatFullScreen(false);
-
-        setTimeout(() => {
-          if (containerRef.current) {
-            containerRef.current.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
             });
           }
         }, 100);
@@ -85,7 +72,7 @@ export function MobileMock() {
     return () => {
       visualViewport.removeEventListener("resize", handleViewportChange);
     };
-  }, [isMobile, setIsChatFullScreen, setIsMobileChatOpened]);
+  }, [isMobile, isChatFullScreen]);
 
   // Auto-focus and chat opening - ensure proper frame view on load
   useEffect(() => {
@@ -97,53 +84,52 @@ export function MobileMock() {
         if (containerRef.current) {
           containerRef.current.scrollIntoView({
             behavior: "smooth",
-            block: "start", // Changed to 'start' to show Matey and input together
+            block: "center", // Changed back to center for better positioning
           });
         }
       }, 500);
     }
   }, [isMobile, setIsMobileChatOpened]);
 
-  // Focus on chat container when writing
-  const handleChatFocus = useCallback(() => {
-    if (isMobile && containerRef.current) {
-      setIsMobileChatOpened(true);
-
-      setTimeout(() => {
-        containerRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-    }
-  }, [isMobile, setIsMobileChatOpened]);
-
-  // Calculate chat container height - optimized for better frame view
+  // Calculate chat container height - more conservative approach
   const getChatHeight = () => {
-    if (isChatFullScreen) return "h-[100vh]";
+    if (isChatFullScreen) {
+      // When keyboard is open, adjust height to account for it
+      if (isKeyboardOpen) {
+        return `h-[${deviceHeight - keyboardHeight - 20}px]`;
+      }
+      return "h-[100vh]";
+    }
 
+    // Normal chat heights - increased to provide more room for budget tab
     if (deviceHeight < 660) {
-      return "h-[480px]"; // Reduced to fit better with Matey in frame
+      return "h-[520px]"; // Increased from 480px
     } else {
-      return isMobileFullHeight ? "h-[440px]" : "h-[400px]"; // Optimized heights
+      return isMobileFullHeight ? "h-[580px]" : "h-[540px]"; // Increased heights
     }
   };
 
-  // Calculate image margins for proper positioning - align thumb with chat edge
+  // Reduced image margins to minimize white space
   const getImageMargins = () => {
     if (deviceHeight < 660) {
-      return "-mb-[240px] -mt-2"; // Back to original position
+      return "-mb-[280px] -mt-4"; // Reduced margins
     } else {
-      return "-mb-[120px]"; // Back to original position
+      return "-mb-[160px] -mt-2"; // Reduced margins
     }
+  };
+
+  // Calculate container margins to reduce white space
+  const getContainerMargins = () => {
+    if (isChatFullScreen) return "mx-0";
+    return "mx-2"; // Reduced from mx-auto to minimize side white space
   };
 
   return (
     <div
       ref={containerRef}
-      className={`w-full mt-5 ${
-        isMobileChatOpened ? "mt-0" : "mt-0"
-      } -mb-2 h-full flex lg:flex-row flex-col p-0 lg:justify-start 
+      className={`w-full ${isMobileChatOpened ? "mt-24" : "mt-0"} ${
+        isChatFullScreen ? "mb-0" : "-mb-4"
+      } h-full flex lg:flex-row flex-col p-0 lg:justify-start 
       text-center
       justify-center
       items-center
@@ -177,7 +163,7 @@ export function MobileMock() {
 
       <div className="hidden lg:flex"></div>
 
-      {/* Mobile Matey Image - Hidden when chat is full screen */}
+      {/* Mobile Matey Image - Hidden when chat is full screen, reduced margins */}
       <AnimatePresence>
         {!isChatFullScreen && (
           <motion.div
@@ -191,22 +177,22 @@ export function MobileMock() {
               loading="lazy"
               src="/assets/matey/langingMatey.svg"
               alt="Matey Character"
-              className={`w-96 h-96 mx-auto ${getImageMargins()}`}
+              className={`w-80 h-80 mx-auto ${getImageMargins()}`} // Reduced size from w-96 h-96
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Chat Container with Grey Border */}
+      {/* Chat Container with Grey Border - improved positioning */}
       <motion.div
         ref={chatContainerRef}
-        className={`lg:w-[480px] ${getChatHeight()} w-[98%] mx-auto lg:mx-0
+        className={`lg:w-[480px] ${getChatHeight()} w-[96%] ${getContainerMargins()}
           lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl
           ${
             isMobileChatOpened
               ? deviceHeight < 660
-                ? "mt-10"
-                : "-mt-20"
+                ? "mt-32" // Reduced from mt-10
+                : "-mt-0" // Reduced from -mt-20
               : "mt-0"
           }
           ${
@@ -217,14 +203,17 @@ export function MobileMock() {
           bg-gradient-to-t from-slate-300 to-softYellow
           transition-all duration-300 ease-in-out
           ${isChatFullScreen ? "p-1" : "p-1"}
+          ${
+            isKeyboardOpen && isChatFullScreen ? `mb-[${keyboardHeight}px]` : ""
+          }
         `}
         layout
-        // onFocus={handleChatFocus}
-        // onClick={handleChatFocus}
         initial={false}
         animate={{
           scale: isChatFullScreen ? 1 : 1,
           borderRadius: isChatFullScreen ? 0 : 24,
+          // Position chat above keyboard when it's open and in full screen
+          y: isChatFullScreen && isKeyboardOpen ? -keyboardHeight / 2 : 0,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
