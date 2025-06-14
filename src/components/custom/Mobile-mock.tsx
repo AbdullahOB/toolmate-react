@@ -59,7 +59,7 @@ export function MobileMock() {
       {deviceHeight < 660 ? (
         <div
           // center
-          className={`lg:w-[480px] w-[98%] mx-auto lg:mx-0
+          className={`lg:w-[480px] h-[420px] w-[98%] mx-auto lg:mx-0
             lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
               isMobileChatOpened ? "mt-32" : "mt-0"
             } bg-gradient-to-t from-slate-300 to-softYellow`}

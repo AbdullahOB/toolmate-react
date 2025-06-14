@@ -1161,7 +1161,7 @@ export default function HeroChat() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30">
+        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30 fixed bottom-0 w-full">
           <div className="flex items-center gap-3">
             {(subscriptionData ||
               (showUploadButton && uploadCount < MAX_FREE_UPLOADS)) && (
