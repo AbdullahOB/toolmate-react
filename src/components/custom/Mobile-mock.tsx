@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 
 export function MobileMock() {
   // get the height of the device
-  const { showExplanationModal, isMobileChatOpened } = useAppContext();
+  const { showExplanationModal, isMobileChatOpened, isMobileFullHeight } =
+    useAppContext();
   const [deviceHeight, setDeviceHeight] = useState(0);
   // get browser
   useEffect(() => {
@@ -68,7 +69,9 @@ export function MobileMock() {
         </div>
       ) : (
         <div
-          className={`lg:w-[480px] w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
+          className={`lg:w-[480px] ${
+            isMobileFullHeight ? "h-[400px]" : ""
+          } w-[98%] mx-auto lg:mx-0 lg:mb-10 lg:ml-20 z-10 md:rounded-[1.8rem] rounded-2xl ${
             isMobileChatOpened ? "" : "mt-0"
           } bg-gradient-to-t from-slate-300 to-softYellow`}
         >
