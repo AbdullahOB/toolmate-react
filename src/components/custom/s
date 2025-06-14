@@ -18,8 +18,8 @@ export function MobileMock() {
   const [deviceHeight, setDeviceHeight] = useState(0);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const containerRef = useRef<HTMLDivElement>();
-  const chatContainerRef = useRef<HTMLDivElement>();
+  const containerRef = useRef < HTMLDivElement > null;
+  const chatContainerRef = useRef < HTMLDivElement > null;
 
   // Device height and mobile detection
   useEffect(() => {
