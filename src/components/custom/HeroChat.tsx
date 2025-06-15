@@ -101,7 +101,13 @@ export default function HeroChat() {
     currentToolName,
     currentExplanation,
   } = useAppContext();
+  const [isDesktop, setIsDesktop] = useState(false);
 
+  useEffect(() => {
+    if (window.innerWidth > 768) {
+      setIsDesktop(true);
+    }
+  }, []);
   const { subscriptionData } = useSubscription();
   const mobileAnimationVariants = useMemo(
     () => ({
@@ -431,7 +437,7 @@ export default function HeroChat() {
   return (
     <div
       className={`relative w-full ${
-        isMobileFullHeight ? "h-full" : "h-[450px]"
+        isMobileFullHeight || isDesktop ? "h-full" : "h-[450px]"
       } hero-chat-container`}
     >
       <motion.div
