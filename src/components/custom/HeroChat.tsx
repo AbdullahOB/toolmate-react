@@ -204,7 +204,7 @@ export default function HeroChat() {
               block: "end",
             });
           }
-        }, 320);
+        }, 150);
       }
     }
   }, [inputRef, isMobile]);
@@ -225,7 +225,7 @@ export default function HeroChat() {
           // Keyboard is closed
           setTimeout(() => {
             scrollToTopAndReset();
-          }, 300); // Small delay to ensure keyboard is fully closed
+          }, 150); // Small delay to ensure keyboard is fully closed
         }
       };
 
@@ -260,8 +260,8 @@ export default function HeroChat() {
             left: 0,
             behavior: "smooth",
           });
-        }, 700);
-      }, 500);
+        }, 150);
+      }, 150);
     }
   }, [scrollContainerRef, isMobile]);
 
@@ -523,7 +523,7 @@ export default function HeroChat() {
   return (
     <div
       className={`relative w-full h-full hero-chat-container ${
-        isMobileFullHeight ? "-mt-0" : ""
+        isMobileFullHeight ? "-mt-0" : "-mt-2"
       }`}
     >
       <motion.div
