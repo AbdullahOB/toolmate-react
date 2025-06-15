@@ -204,7 +204,7 @@ export default function HeroChat() {
               block: "end",
             });
           }
-        }, 150);
+        }, 210);
       }
     }
   }, [inputRef, isMobile]);
@@ -225,7 +225,7 @@ export default function HeroChat() {
           // Keyboard is closed
           setTimeout(() => {
             scrollToTopAndReset();
-          }, 150); // Small delay to ensure keyboard is fully closed
+          }, 210); // Small delay to ensure keyboard is fully closed
         }
       };
 
@@ -260,8 +260,8 @@ export default function HeroChat() {
             left: 0,
             behavior: "smooth",
           });
-        }, 150);
-      }, 150);
+        }, 700);
+      }, 500);
     }
   }, [scrollContainerRef, isMobile]);
 
