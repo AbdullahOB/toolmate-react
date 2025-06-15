@@ -43,7 +43,8 @@ const MateyStaticImage = memo(() => (
 MateyStaticImage.displayName = "MateyStaticImage";
 
 export const MobileMock = memo(() => {
-  const { isMobileFullHeight, showExplanationModal } = useAppContext();
+  const { isMobileFullHeight, showExplanationModal, mobileMockChatRef } =
+    useAppContext();
 
   // Memoize the container classes to prevent recalculation
   const containerClasses = useMemo(

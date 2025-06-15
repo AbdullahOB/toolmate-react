@@ -245,6 +245,7 @@ export interface AppContextType {
   setIsInitialLoading: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Refs
+  mobileMockChatRef: React.RefObject<HTMLDivElement>;
   chatContainerRef: React.RefObject<HTMLDivElement>;
   fileInputRef: React.RefObject<HTMLInputElement>;
   inputRef: React.RefObject<HTMLInputElement>;
@@ -359,6 +360,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   // Refs
+  const mobileMockChatRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1513,6 +1515,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({
 
     // Refs
     chatContainerRef,
+    mobileMockChatRef,
     fileInputRef,
     inputRef,
     scrollContainerRef,

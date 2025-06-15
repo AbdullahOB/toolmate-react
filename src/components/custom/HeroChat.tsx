@@ -60,6 +60,7 @@ export default function HeroChat() {
     fileInputRef,
     inputRef,
     scrollContainerRef,
+    mobileMockChatRef,
 
     // Functions from context
     handleSendMessage,
@@ -179,12 +180,6 @@ export default function HeroChat() {
     }
   }, [handleSendMessage, scrollToTopAndReset, isMobile]);
 
-  // Simplified keyboard detection for mobile
-  useEffect(() => {
-    // Commented out complex keyboard handling for performance
-    // This was likely causing lag on mobile
-  }, [inputRef]);
-
   // Optimized focus handler
   const focusAndScrollToInput = useCallback(() => {
     if (isMobile) {
@@ -195,19 +190,17 @@ export default function HeroChat() {
         // find this .hero-chat-container and scroll to bottom
 
         setTimeout(() => {
-          const scrollContainer = document.querySelector(
-            ".hero-chat-container"
-          );
+          const scrollContainer = chatContainerRef.current;
           if (scrollContainer) {
             scrollContainer.scrollIntoView({
-              behavior: "smooth",
+              behavior: "auto",
               block: "end",
             });
           }
-        }, 320);
+        }, 500);
       }
     }
-  }, [inputRef, isMobile]);
+  }, [inputRef, isMobile, chatContainerRef]);
 
   useEffect(() => {
     // Only run on mobile devices
@@ -223,9 +216,7 @@ export default function HeroChat() {
         // If keyboard was open (significant height difference) and now it's closed
         if (heightDifference < 100) {
           // Keyboard is closed
-          setTimeout(() => {
-            scrollToTopAndReset();
-          }, 320); // Small delay to ensure keyboard is fully closed
+          scrollToTopAndReset();
         }
       };
 
@@ -522,6 +513,7 @@ export default function HeroChat() {
 
   return (
     <div
+      ref={chatContainerRef}
       className={`relative w-full h-full hero-chat-container ${
         isMobileFullHeight ? "-mt-0" : "-mt-2"
       }`}
@@ -622,7 +614,7 @@ export default function HeroChat() {
           </div>
         </div>
         <div
-          ref={chatContainerRef}
+          // ref={chatContainerRef}
           className={`flex-1 overflow-y-auto relative px-2 pr-12 py-6 bg-white/40 ${
             isMobileFullHeight
               ? showBudgetSlider
@@ -995,7 +987,6 @@ export default function HeroChat() {
               </motion.div>
             )}
           </AnimatePresence>
-          <div ref={chatContainerRef} />
         </div>
         {showPrompt ? (
           <div className="p-3 bg-white/70 border-t border-yellow/30 relative">
