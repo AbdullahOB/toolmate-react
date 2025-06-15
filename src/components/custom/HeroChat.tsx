@@ -210,6 +210,47 @@ export default function HeroChat() {
   }, [inputRef, isMobile]);
 
   useEffect(() => {
+    // Only run on mobile devices
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      let initialViewportHeight =
+        window.visualViewport?.height || window.innerHeight;
+
+      const handleViewportChange = () => {
+        const currentHeight =
+          window.visualViewport?.height || window.innerHeight;
+        const heightDifference = initialViewportHeight - currentHeight;
+
+        // If keyboard was open (significant height difference) and now it's closed
+        if (heightDifference < 100) {
+          // Keyboard is closed
+          setTimeout(() => {
+            scrollToTopAndReset();
+          }, 300); // Small delay to ensure keyboard is fully closed
+        }
+      };
+
+      // Listen for visual viewport changes
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", handleViewportChange);
+      } else {
+        // Fallback for older browsers
+        window.addEventListener("resize", handleViewportChange);
+      }
+
+      return () => {
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener(
+            "resize",
+            handleViewportChange
+          );
+        } else {
+          window.removeEventListener("resize", handleViewportChange);
+        }
+      };
+    }
+  }, [scrollToTopAndReset]);
+
+  useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer && !isMobile) {
       setTimeout(() => {
@@ -1091,7 +1132,7 @@ export default function HeroChat() {
                     if (isMobile) {
                       setTimeout(() => {
                         scrollToTopAndReset();
-                      }, 100);
+                      }, 150);
                     }
                   }}
                   onChange={(e) => {
