@@ -13,7 +13,7 @@
   }
 
   .bot-bubble::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 16px;
     left: -16px;
@@ -34,7 +34,7 @@
   }
 }
 .input-wrapper::after {
-  content: '|';
+  content: "|";
   position: absolute;
   left: 12px;
   top: 51%;
@@ -53,7 +53,7 @@
 }
 .input-wrapper:has(input:focus)::after,
 .input-wrapper:has(input:not(:placeholder-shown))::after {
-  content: '';
+  content: "";
   animation: none;
 }
 
@@ -68,7 +68,7 @@
 }
 
 * {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 @layer utilities {
@@ -164,7 +164,7 @@
 }
 
 .glowing-border::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   /* Adjust to fit */
@@ -177,7 +177,11 @@
   border-radius: inherit;
   border: 2px solid transparent;
   /* Prevents layout shift */
-  background: linear-gradient(to right, rgba(255, 223, 0, 0.3), rgba(255, 89, 0, 0.3));
+  background: linear-gradient(
+    to right,
+    rgba(255, 223, 0, 0.3),
+    rgba(255, 89, 0, 0.3)
+  );
   z-index: -1;
   /* Ensures it's behind the content */
   box-shadow: 0 0 3px rgba(255, 223, 0, 0.3), 0 0 5px rgba(255, 223, 0, 0.5);

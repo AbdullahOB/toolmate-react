@@ -134,13 +134,10 @@ export default function HeroChat() {
   const focusAndScrollToInput = useCallback(() => {
     const textarea = inputRef.current;
     if (textarea && window.innerWidth <= 768) {
+      textarea.focus({ preventScroll: true });
       setIsMobileFullHeight(true);
-      // By simply focusing the element, we let the browser handle scrolling the input
-      // into view. This is much more performant than the previous manual approach.
-      textarea.focus();
     }
   }, [inputRef, setIsMobileFullHeight]);
-
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
       const initialViewportHeight = window.innerHeight;
@@ -153,33 +150,14 @@ export default function HeroChat() {
         const isKeyboardNowVisible = heightDifference > 150;
         if (isKeyboardNowVisible && !keyboardVisible) {
           keyboardVisible = true;
-          const textarea = inputRef.current;
-          if (textarea && document.activeElement === textarea) {
-            const calculateScrollPosition = () => {
-              const textareaRect = textarea.getBoundingClientRect();
-              const viewportHeight = window.innerHeight;
-              const textareaBottom = textareaRect.bottom;
-              const keyboardHeight = viewportHeight * 0;
-
-              return (
-                window.scrollY +
-                textareaBottom -
-                (viewportHeight - keyboardHeight) +
-                60
-              );
-            };
+          const inputRefValue = inputRef.current;
+          if (inputRefValue && document.activeElement === inputRefValue) {
             setTimeout(() => {
-              window.scrollTo({
-                top: calculateScrollPosition(),
+              inputRefValue.scrollIntoView({
+                block: "end",
                 behavior: "smooth",
               });
-            }, 100);
-            setTimeout(() => {
-              window.scrollTo({
-                top: calculateScrollPosition(),
-                behavior: "smooth",
-              });
-            }, 350);
+            }, 200);
           }
         } else if (!isKeyboardNowVisible && keyboardVisible) {
           keyboardVisible = false;
@@ -188,7 +166,7 @@ export default function HeroChat() {
               top: 0,
               behavior: "smooth",
             });
-          }, 100);
+          }, 200);
         }
       };
       if (window.visualViewport) {
@@ -451,7 +429,11 @@ export default function HeroChat() {
   }, [clearChatHistory]);
 
   return (
-    <div className="relative w-full h-full hero-chat-container">
+    <div
+      className={`relative w-full ${
+        isMobileFullHeight ? "h-full" : "h-[450px]"
+      } hero-chat-container`}
+    >
       <motion.div
         initial={mobileAnimationVariants.initial}
         animate={mobileAnimationVariants.animate}
@@ -1020,7 +1002,7 @@ export default function HeroChat() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30">
+        <div className="p-2 sm:p-4 bg-white border-t border-yellow/30 sticky bottom-0 w-full">
           <div className="flex items-center gap-3">
             {(subscriptionData ||
               (showUploadButton && uploadCount < MAX_FREE_UPLOADS)) && (

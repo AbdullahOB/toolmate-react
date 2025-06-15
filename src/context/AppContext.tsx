@@ -248,7 +248,7 @@ export interface AppContextType {
   mobileMockChatRef: React.RefObject<HTMLDivElement>;
   chatContainerRef: React.RefObject<HTMLDivElement>;
   fileInputRef: React.RefObject<HTMLInputElement>;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLTextAreaElement>;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   containerRef: React.RefObject<HTMLDivElement>;
   userMessageSentDuringLoading: React.MutableRefObject<boolean>;
@@ -363,7 +363,7 @@ const AppContextProvider: React.FC<AppContextProviderProps> = ({
   const mobileMockChatRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const userMessageSentDuringLoading = useRef(false);
   let longPressTimeout: NodeJS.Timeout;
