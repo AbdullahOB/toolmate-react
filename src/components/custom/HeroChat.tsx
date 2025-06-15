@@ -207,16 +207,38 @@ export default function HeroChat() {
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
       let initialViewportHeight =
         window.visualViewport?.height || window.innerHeight;
+      let isKeyboardOpen = false;
 
       const handleViewportChange = () => {
         const currentHeight =
           window.visualViewport?.height || window.innerHeight;
         const heightDifference = initialViewportHeight - currentHeight;
 
-        // If keyboard was open (significant height difference) and now it's closed
-        if (heightDifference < 100) {
-          // Keyboard is closed
+        // Keyboard is open if height difference is significant (>150px is a good threshold)
+        const keyboardCurrentlyOpen = heightDifference > 150;
+
+        // If keyboard was open and now it's closed
+        if (isKeyboardOpen && !keyboardCurrentlyOpen) {
+          // Keyboard is closed - reset mobile state
           scrollToTopAndReset();
+          // Also blur the input to ensure consistent state
+          if (inputRef.current) {
+            inputRef.current.blur();
+          }
+        }
+
+        isKeyboardOpen = keyboardCurrentlyOpen;
+      };
+
+      // Handle Android back button specifically
+      const handleBackButton = (e) => {
+        // Check if input is focused and keyboard is likely open
+        if (document.activeElement === inputRef.current && isKeyboardOpen) {
+          // Force blur the input
+          inputRef.current?.blur();
+          // Reset mobile state
+          scrollToTopAndReset();
+          setClicked(false);
         }
       };
 
@@ -228,6 +250,20 @@ export default function HeroChat() {
         window.addEventListener("resize", handleViewportChange);
       }
 
+      // Listen for back button (popstate event)
+      window.addEventListener("popstate", handleBackButton);
+
+      // Also listen for escape key as additional fallback
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape" && document.activeElement === inputRef.current) {
+          inputRef.current?.blur();
+          scrollToTopAndReset();
+          setClicked(false);
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+
       return () => {
         if (window.visualViewport) {
           window.visualViewport.removeEventListener(
@@ -237,9 +273,22 @@ export default function HeroChat() {
         } else {
           window.removeEventListener("resize", handleViewportChange);
         }
+        window.removeEventListener("popstate", handleBackButton);
+        document.removeEventListener("keydown", handleKeyDown);
       };
     }
-  }, [scrollToTopAndReset]);
+  }, [scrollToTopAndReset, inputRef, setClicked]);
+
+  // Also update your existing onBlur handler to be more consistent
+  const handleInputBlur = useCallback(() => {
+    setClicked(false);
+    if (isMobile) {
+      // Use a shorter timeout for better UX
+      setTimeout(() => {
+        scrollToTopAndReset();
+      }, 100);
+    }
+  }, [isMobile, scrollToTopAndReset, setClicked]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -1118,14 +1167,7 @@ export default function HeroChat() {
                   ref={inputRef}
                   value={inputValue}
                   onFocus={focusAndScrollToInput}
-                  onBlur={() => {
-                    setClicked(false);
-                    if (isMobile) {
-                      setTimeout(() => {
-                        scrollToTopAndReset();
-                      }, 150);
-                    }
-                  }}
+                  onBlur={handleInputBlur}
                   onChange={(e) => {
                     setInputValue(e.target.value);
                     getSuggestionsForInput(e.target.value);
