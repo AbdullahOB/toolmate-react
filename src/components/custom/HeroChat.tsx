@@ -60,7 +60,6 @@ export default function HeroChat() {
     fileInputRef,
     inputRef,
     scrollContainerRef,
-    mobileMockChatRef,
 
     // Functions from context
     handleSendMessage,
@@ -104,191 +103,110 @@ export default function HeroChat() {
   } = useAppContext();
 
   const { subscriptionData } = useSubscription();
-
-  // Optimized animation variants for mobile
   const mobileAnimationVariants = useMemo(
     () => ({
-      initial: isMobile
-        ? { opacity: 0 }
-        : shouldReduceMotion
-        ? { opacity: 0 }
-        : { y: 20, opacity: 0 },
-      animate: isMobile
-        ? { opacity: 1 }
-        : shouldReduceMotion
-        ? { opacity: 1 }
-        : { y: 0, opacity: 1 },
-      exit: isMobile
-        ? { opacity: 0 }
-        : shouldReduceMotion
-        ? { opacity: 0 }
-        : { y: -10, opacity: 0 },
-      transition: isMobile
-        ? { duration: 0.1 }
-        : shouldReduceMotion
-        ? { duration: 0.2 }
-        : { duration: 0.5 },
+      initial:
+        isMobile || shouldReduceMotion ? { opacity: 0 } : { y: 20, opacity: 0 },
+      animate:
+        isMobile || shouldReduceMotion ? { opacity: 1 } : { y: 0, opacity: 1 },
+      exit:
+        isMobile || shouldReduceMotion
+          ? { opacity: 0 }
+          : { y: -10, opacity: 0 },
+      transition:
+        isMobile || shouldReduceMotion ? { duration: 0.2 } : { duration: 0.5 },
     }),
     [isMobile, shouldReduceMotion]
   );
 
   const messageAnimationVariants = useMemo(
     () => ({
-      initial: isMobile
-        ? { opacity: 0 }
-        : shouldReduceMotion
-        ? { opacity: 0 }
-        : { opacity: 0, y: 18 },
-      animate: isMobile
-        ? { opacity: 1 }
-        : shouldReduceMotion
-        ? { opacity: 1 }
-        : { opacity: 1, y: 0 },
-      transition: isMobile
-        ? { duration: 0.1 }
-        : shouldReduceMotion
-        ? { duration: 0.15 }
-        : { duration: 0.3 },
+      initial:
+        isMobile || shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 18 },
+      animate:
+        isMobile || shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
+      transition:
+        isMobile || shouldReduceMotion ? { duration: 0.15 } : { duration: 0.3 },
     }),
     [isMobile, shouldReduceMotion]
   );
 
-  // Optimized scroll function with requestAnimationFrame
-  const scrollToTopAndReset = useCallback(() => {
-    if (window.innerWidth <= 768) {
-      // Use requestAnimationFrame for smoother performance
-      requestAnimationFrame(() => {
-        setIsMobileFullHeight(true);
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-      });
-    }
-  }, [setIsMobileFullHeight]);
-
-  // Optimized send message handler
-  const handleSendMessageWithReset = useCallback(() => {
-    // Immediately call send to reduce perceived lag
-    handleSendMessage();
-
-    // Defer scroll handling to next frame
-    if (isMobile) {
-      requestAnimationFrame(() => {
-        scrollToTopAndReset();
-      });
-    }
-  }, [handleSendMessage, scrollToTopAndReset, isMobile]);
-
-  // Optimized focus handler
   const focusAndScrollToInput = useCallback(() => {
-    if (isMobile) {
-      // Simplified focus handling for mobile
-      const textarea = inputRef.current;
-      if (textarea) {
-        textarea.focus();
-        // find this .hero-chat-container and scroll to bottom
-
-        setTimeout(() => {
-          const scrollContainer = chatContainerRef.current;
-          if (scrollContainer) {
-            scrollContainer.scrollIntoView({
-              behavior: "auto",
-              block: "end",
-            });
-          }
-        }, 500);
-      }
+    const textarea = inputRef.current;
+    if (textarea && window.innerWidth <= 768) {
+      setIsMobileFullHeight(true);
+      // By simply focusing the element, we let the browser handle scrolling the input
+      // into view. This is much more performant than the previous manual approach.
+      textarea.focus();
     }
-  }, [inputRef, isMobile, chatContainerRef]);
+  }, [inputRef, setIsMobileFullHeight]);
 
   useEffect(() => {
-    // Only run on mobile devices
     if (typeof window !== "undefined" && window.innerWidth <= 768) {
-      let initialViewportHeight =
-        window.visualViewport?.height || window.innerHeight;
-      let isKeyboardOpen = false;
-
+      const initialViewportHeight = window.innerHeight;
+      let keyboardVisible = false;
       const handleViewportChange = () => {
-        const currentHeight =
-          window.visualViewport?.height || window.innerHeight;
+        const currentHeight = window.visualViewport
+          ? window.visualViewport.height
+          : window.innerHeight;
         const heightDifference = initialViewportHeight - currentHeight;
+        const isKeyboardNowVisible = heightDifference > 150;
+        if (isKeyboardNowVisible && !keyboardVisible) {
+          keyboardVisible = true;
+          const textarea = inputRef.current;
+          if (textarea && document.activeElement === textarea) {
+            const calculateScrollPosition = () => {
+              const textareaRect = textarea.getBoundingClientRect();
+              const viewportHeight = window.innerHeight;
+              const textareaBottom = textareaRect.bottom;
+              const keyboardHeight = viewportHeight * 0;
 
-        // Keyboard is open if height difference is significant (>150px is a good threshold)
-        const keyboardCurrentlyOpen = heightDifference > 150;
-
-        // If keyboard was open and now it's closed
-        if (isKeyboardOpen && !keyboardCurrentlyOpen) {
-          // Keyboard is closed - reset mobile state
-          scrollToTopAndReset();
-          // Also blur the input to ensure consistent state
-          if (inputRef.current) {
-            inputRef.current.blur();
+              return (
+                window.scrollY +
+                textareaBottom -
+                (viewportHeight - keyboardHeight) +
+                60
+              );
+            };
+            setTimeout(() => {
+              window.scrollTo({
+                top: calculateScrollPosition(),
+                behavior: "smooth",
+              });
+            }, 100);
+            setTimeout(() => {
+              window.scrollTo({
+                top: calculateScrollPosition(),
+                behavior: "smooth",
+              });
+            }, 350);
           }
-        }
-
-        isKeyboardOpen = keyboardCurrentlyOpen;
-      };
-
-      // Handle Android back button specifically
-      const handleBackButton = (e) => {
-        // Check if input is focused and keyboard is likely open
-        if (document.activeElement === inputRef.current && isKeyboardOpen) {
-          // Force blur the input
-          inputRef.current?.blur();
-          // Reset mobile state
-          scrollToTopAndReset();
-          setClicked(false);
+        } else if (!isKeyboardNowVisible && keyboardVisible) {
+          keyboardVisible = false;
+          setTimeout(() => {
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          }, 100);
         }
       };
-
-      // Listen for visual viewport changes
       if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", handleViewportChange);
-      } else {
-        // Fallback for older browsers
-        window.addEventListener("resize", handleViewportChange);
-      }
-
-      // Listen for back button (popstate event)
-      window.addEventListener("popstate", handleBackButton);
-
-      // Also listen for escape key as additional fallback
-      const handleKeyDown = (e) => {
-        if (e.key === "Escape" && document.activeElement === inputRef.current) {
-          inputRef.current?.blur();
-          scrollToTopAndReset();
-          setClicked(false);
-        }
-      };
-
-      document.addEventListener("keydown", handleKeyDown);
-
-      return () => {
-        if (window.visualViewport) {
-          window.visualViewport.removeEventListener(
+        return () => {
+          window.visualViewport?.removeEventListener(
             "resize",
             handleViewportChange
           );
-        } else {
+        };
+      } else {
+        window.addEventListener("resize", handleViewportChange);
+        return () => {
           window.removeEventListener("resize", handleViewportChange);
-        }
-        window.removeEventListener("popstate", handleBackButton);
-        document.removeEventListener("keydown", handleKeyDown);
-      };
+        };
+      }
     }
-  }, [scrollToTopAndReset, inputRef, setClicked]);
-
-  // Also update your existing onBlur handler to be more consistent
-  const handleInputBlur = useCallback(() => {
-    setClicked(false);
-    if (isMobile) {
-      // Use a shorter timeout for better UX
-      setTimeout(() => {
-        scrollToTopAndReset();
-      }, 100);
-    }
-  }, [isMobile, scrollToTopAndReset, setClicked]);
+  }, [inputRef]);
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -532,41 +450,8 @@ export default function HeroChat() {
     resetMobileState();
   }, [clearChatHistory]);
 
-  // Optimized send button with reduced animations on mobile
-  const SendButton = useMemo(
-    () => (
-      <motion.button
-        whileHover={isMobile ? {} : { scale: 1.1, rotate: -15 }}
-        whileTap={isMobile ? { scale: 0.95 } : { scale: 0.9, rotate: 15 }}
-        style={{ borderRadius: "40% 60% 50% 45%" }}
-        className="p-3 md:p-4 bg-yellow text-white cursor-pointer rounded-full hover:bg-softYellow shadow-md touch-manipulation"
-        onClick={handleSendMessageWithReset}
-        disabled={
-          (inputValue.trim() === "" && !imagePreview) ||
-          isCompletingText ||
-          isCompressingImage
-        }
-      >
-        <Send size={24} />
-      </motion.button>
-    ),
-    [
-      isMobile,
-      handleSendMessageWithReset,
-      inputValue,
-      imagePreview,
-      isCompletingText,
-      isCompressingImage,
-    ]
-  );
-
   return (
-    <div
-      ref={chatContainerRef}
-      className={`relative w-full h-full hero-chat-container ${
-        isMobileFullHeight ? "-mt-0" : "-mt-2"
-      }`}
-    >
+    <div className="relative w-full h-full hero-chat-container">
       <motion.div
         initial={mobileAnimationVariants.initial}
         animate={mobileAnimationVariants.animate}
@@ -663,7 +548,7 @@ export default function HeroChat() {
           </div>
         </div>
         <div
-          // ref={chatContainerRef}
+          ref={chatContainerRef}
           className={`flex-1 overflow-y-auto relative px-2 pr-12 py-6 bg-white/40 ${
             isMobileFullHeight
               ? showBudgetSlider
@@ -977,7 +862,7 @@ export default function HeroChat() {
                         Tools Recommendation
                       </p>
                     </div>
-                    <div className="flex gap-4 overflow-x-auto pb-0 px-2">
+                    <div className="flex gap-4 overflow-x-auto pb-4 px-2">
                       {message.products.map((product, idx) => (
                         <ProductCard key={idx} product={product} idx={idx} />
                       ))}
@@ -1036,6 +921,7 @@ export default function HeroChat() {
               </motion.div>
             )}
           </AnimatePresence>
+          <div ref={chatContainerRef} />
         </div>
         {showPrompt ? (
           <div className="p-3 bg-white/70 border-t border-yellow/30 relative">
@@ -1142,7 +1028,7 @@ export default function HeroChat() {
                 whileHover={isMobile ? {} : { scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 style={{ borderRadius: "60% 40% 50% 45%" }}
-                className="p-3 md:p-4 bg-paleYellow text-orange hover:bg-yellow hover:text-white rounded-full shadow-md relative group touch-manipulation"
+                className="p-3 md:p-4 bg-paleYellow text-orange hover:bg-yellow hover:text-white rounded-full shadow-md relative group"
                 onClick={handleFileUpload}
                 title="Upload an image"
                 disabled={isCompressingImage}
@@ -1167,7 +1053,9 @@ export default function HeroChat() {
                   ref={inputRef}
                   value={inputValue}
                   onFocus={focusAndScrollToInput}
-                  onBlur={handleInputBlur}
+                  onBlur={() => {
+                    setClicked(false);
+                  }}
                   onChange={(e) => {
                     setInputValue(e.target.value);
                     getSuggestionsForInput(e.target.value);
@@ -1197,7 +1085,6 @@ export default function HeroChat() {
     z-10
     min-h-[48px]
     max-h-[120px]
-    touch-manipulation
   "
                 />
 
@@ -1231,7 +1118,20 @@ export default function HeroChat() {
                 </AnimatePresence>
               </div>
             </div>
-            {SendButton}
+            <motion.button
+              whileHover={isMobile ? {} : { scale: 1.1, rotate: -15 }}
+              whileTap={{ scale: 0.9, rotate: isMobile ? 0 : 15 }}
+              style={{ borderRadius: "40% 60% 50% 45%" }}
+              className="p-3 md:p-4 bg-yellow text-white cursor-pointer rounded-full hover:bg-softYellow shadow-md"
+              onClick={handleSendMessage}
+              disabled={
+                (inputValue.trim() === "" && !imagePreview) ||
+                isCompletingText ||
+                isCompressingImage
+              }
+            >
+              <Send size={18} />
+            </motion.button>
           </div>
         </div>
       </motion.div>
@@ -1240,6 +1140,7 @@ export default function HeroChat() {
           <CursorEffect />
         </div>
       )}
+      <div className="h-1"></div>
       {/* Explanation Modal */}
       <ExplanationModal
         showExplanationModal={showExplanationModal}
